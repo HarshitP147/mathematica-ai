@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@elevenlabs/react": "^0.7.1",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.58.0",
     "daisyui": "^5.1.27",
