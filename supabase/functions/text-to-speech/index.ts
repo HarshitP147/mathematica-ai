@@ -6,12 +6,12 @@ import * as hash from 'npm:object-hash';
 
 // Supabase client with service role key
 const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') ?? 'http://127.0.0.1:54321',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+  Deno.env.get('SUPABASE_URL') ,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 );
 
 const elevenlabs = new ElevenLabsClient({
-  apiKey: Deno.env.get('ELEVENLABS_API_KEY') ?? "sk_068a0ab2f8f05f2f71f900e977d474ca41ea35a2042fdc27"
+  apiKey: Deno.env.get('ELEVENLABS_API_KEY')
 });
 
 
