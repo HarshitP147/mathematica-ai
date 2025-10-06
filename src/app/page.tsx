@@ -1,15 +1,13 @@
-import { Button } from "@/components/ui/button"
+import Link from 'next/link';
 
 export default function Home() {
     return (
-        <div>
-            <h1 className="text-3xl font-bold underline">
-                Hello world!
-            </h1>
-            <p className="mt-3 text-lg">
-                This is a sample Next.js application with Tailwind CSS.
-            </p>
-            <Button>Click me</Button>
-        </div>
+        <main className="min-h-screen bg-gradient-to-bl from-secondary to-primary-content flex items-center justify-center p-6">
+            <div className="text-center">
+                <h1 className="text-4xl  font-bold mb-4">Welcome to Sceal AI</h1>
+                <p className="text-lg text-gray-600 mb-6">Your AI-powered assistant for seamless communication.</p>
+                <Link href="/chat" className="btn btn-primary btn-lg">Get Started</Link>
+            </div>
+        </main>
     )
 }
