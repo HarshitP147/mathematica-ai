@@ -3,6 +3,10 @@ import { createClient } from "supabase-js";
 import { ElevenLabsClient } from "elevenlabs";
 import * as hash from "object-hash";
 
+import { corsHeaders } from "../_shared/cors.ts";
+
+// Initialize Supabase client
+
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
@@ -32,8 +36,6 @@ Deno.serve(async (req) => {
     return new Response("Method Not Allowed", { status: 405 });
   }
 
-  console.log(`Request origin`, req.headers.get("host"));
-
   const params = new URL(req.url).searchParams;
 
   const text = params.get("text") ?? "";
@@ -42,6 +44,7 @@ Deno.serve(async (req) => {
   if (!text) {
     return new Response("Bad Request: 'text' parameter is required", {
       status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
@@ -64,7 +67,12 @@ Deno.serve(async (req) => {
     console.log("Existing audio found, returning signed URL.");
     const storageRes = await fetch(data.signedUrl);
     if (storageRes.ok) {
-      return storageRes;
+      return new Response(storageRes.body, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "audio/mp3",
+        },
+      });
     } else {
       console.log("No existing audio found, generating new audio.");
     }
@@ -98,13 +106,14 @@ Deno.serve(async (req) => {
     return new Response(browserStream, {
       headers: {
         "Content-Type": "audio/mp3",
+        ...corsHeaders,
       },
     });
   } catch (err) {
     console.error("Error generating audio:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   }
 });
