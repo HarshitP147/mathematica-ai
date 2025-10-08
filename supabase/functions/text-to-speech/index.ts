@@ -59,6 +59,30 @@ Deno.serve(async (req) => {
   const requestHash = hash.MD5({ text, voice: voiceId });
   console.log(`Request hash: ${requestHash}`);
 
+  // check if audio bucket exists
+  const { data: bucketData, error: bucketError } = await supabase.storage
+    .getBucket("audio");
+  if (bucketError) {
+    console.log("Audio bucket not found, creating...");
+    const { data, error } = await supabase.storage.createBucket("audio", {
+      public: true, // keeping true for now, but should be false for production
+      fileSizeLimit: 50 * 1024 * 1024, // 50MB
+    });
+    if (error) {
+      console.error("Error creating audio bucket:", error);
+      return new Response(
+        JSON.stringify({ error: "Failed to create storage bucket" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    }
+    console.log("Audio bucket created:", data);
+  } else {
+    console.log("Audio bucket exists:", bucketData);
+  }
+
   // check for existing audio file
   const { data } = await supabase.storage.from("audio").createSignedUrl(
     `audio-${requestHash}.mp3`,
