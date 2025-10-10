@@ -20,7 +20,6 @@ export const metadata: Metadata = {
     description: "Platform for storytelling and narration with AI",
 };
 
-const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!
 
 export default function RootLayout({
     children,
