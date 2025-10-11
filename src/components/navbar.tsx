@@ -2,8 +2,8 @@ import Link from "next/link";
 
 import Menu from "@/components/menu";
 
-export default function Navbar() {
 
+export default function Navbar() {
 
     return (
         <div className="fixed mt-4  top-4 -translate-x-1/2 left-[50%] w-[60%] z-50">

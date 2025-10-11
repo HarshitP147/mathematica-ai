@@ -1,17 +1,45 @@
 'use client'
 
-import Image from "next/image";
+
+import { useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { GoogleLogin, } from "@react-oauth/google";
+
+import AuthContext from "@/context/AuthContext";
+import { createClient } from "@/util/supabase/client";
+
 
 export default function Page() {
+    const { googleSignIn } = useContext(AuthContext);
+    const router = useRouter();
+    const supabase = createClient();
+    const [isChecking, setIsChecking] = useState(true);
+
+    // Check if user is already logged in
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+                // User is already logged in, redirect to home
+                router.replace('/');
+            } else {
+                setIsChecking(false);
+            }
+        });
+    }, [supabase.auth, router]);
+
     const handleAppleSignIn = () => {
         // Add your Apple sign-in logic here
         console.log('Apple sign-in clicked');
     };
 
-    const handleGoogleSignIn = () => {
-        // Add your Google sign-in logic here
-        console.log('Google sign-in clicked');
-    };
+    // Show loading while checking auth status
+    if (isChecking) {
+        return (
+            <main className="flex min-h-screen bg-primary-content flex-col items-center justify-center">
+                <div className="loading loading-spinner loading-lg"></div>
+            </main>
+        );
+    }
 
     return (
         <main className="flex min-h-screen bg-primary-content flex-col items-center justify-center p-24">
@@ -39,13 +67,7 @@ export default function Page() {
                         </button>
 
                         {/* Google Sign In Button */}
-                        <button
-                            onClick={handleGoogleSignIn}
-                            className="btn btn-lg w-full bg-white text-black border-[#e5e5e5] hover:bg-gray-50"
-                        >
-                            <Image src="/google.svg" alt="Google Logo" width={40} height={40} />
-                            Sign in with Google
-                        </button>
+                        <GoogleLogin onSuccess={googleSignIn} />
                     </div>
 
                 </div>

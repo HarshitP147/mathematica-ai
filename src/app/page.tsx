@@ -1,6 +1,11 @@
 import Link from 'next/link';
 
+import { createClient } from '@/util/supabase/server';
+
+
 export default function Home() {
+    const supabase = createClient();
+
     return (
         <div className="min-h-screen bg-gradient-to-bl from-accent via-secondary-content to-primary-content flex items-center justify-center p-6">
             <div className="text-center">

@@ -8,32 +8,40 @@ import { CircleUserRound } from "lucide-react"
 import { createClient } from "@/util/supabase/client";
 
 export default function Menu() {
-    const [userLoggedIn, setUserLoggedIn] = useState(false);
-
     const supabase = createClient();
 
-    // check if user is logged in
+    const [userLoggedIn, setUserLoggedIn] = useState(false);
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
     useEffect(() => {
-        const getUser = async () => {
-            const { data: user } = await supabase.auth.getUser();
-            if (user.user) {
+        supabase.auth.getUser().then((res => {
+            if (res.data.user) {
                 setUserLoggedIn(true);
+                // Get avatar URL from user metadata (provided by Google OAuth)
+                const avatarUrl = res.data.user.user_metadata?.avatar_url ||
+                    res.data.user.user_metadata?.picture;
+                setAvatarUrl(avatarUrl);
             } else {
                 setUserLoggedIn(false);
+                setAvatarUrl(null);
             }
-        }
-        getUser();
+        }))
     }, [supabase.auth]);
+
 
     return (
         <div className="dropdown ">
             <button tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
-                {userLoggedIn ? (
-                    <Image
-                        fill
-                        className="rounded-full w-14"
-                        alt="Tailwind CSS Navbar component"
-                        src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                {userLoggedIn && avatarUrl ? (
+                    <div className="w-10 rounded-full">
+                        <Image
+                            width={40}
+                            height={40}
+                            className="rounded-full"
+                            alt="User avatar"
+                            src={avatarUrl}
+                        />
+                    </div>
                 )
                     :
                     <CircleUserRound size={32} />
