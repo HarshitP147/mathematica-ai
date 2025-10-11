@@ -49,7 +49,12 @@ export default function Menu() {
             </button>
             <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
                 {userLoggedIn ? (
-                    <li><Link href="/">My Stories</Link></li>
+                    <>
+                        <li><Link href="/" className="text-center">My Stories</Link></li>
+                        <li>
+                            <button className="text-error" onClick={() => document.getElementById('my_modal_2')!.showModal()}>Sign out</button>
+                        </li>
+                    </>
                 ) : (
                     <li><Link href="/auth">Login / Sign Up</Link></li>
                 )}
