@@ -5,6 +5,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./globals.css";
 
 import Navbar from "@/components/navbar";
+import Modal from "@/components/modal";
 
 import { AuthProvider } from "@/context/AuthContext";
 
@@ -42,6 +43,7 @@ export default function RootLayout({
                         <main>
                             {children}
                         </main>
+                        <Modal />
                     </body>
                 </AuthProvider>
             </GoogleOAuthProvider>

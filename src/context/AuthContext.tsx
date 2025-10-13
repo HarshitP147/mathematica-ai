@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from "react";
+import { createContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { CredentialResponse } from "@react-oauth/google";
 
@@ -54,6 +54,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
         }
     };
+
+    useEffect(() => {
+        supabase.auth.onAuthStateChange((ev, session) => {
+            console.log('Auth event:', ev);
+            // if already signed in, redirect to home
+            if (ev === 'SIGNED_IN') {
+                router.replace("/");
+            }
+        })
+
+    }, [supabase.auth]);
 
     return (
         <AuthContext.Provider value={authValue}>

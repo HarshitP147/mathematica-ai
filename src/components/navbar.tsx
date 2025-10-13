@@ -21,9 +21,7 @@ export default function Navbar() {
                     </div>
                 </div>
                 <div className="navbar-end">
-                    <div className="dropdown dropdown-end">
-                        <Menu />
-                    </div>
+                    <Menu />
                 </div>
             </nav>
         </div>

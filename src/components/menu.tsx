@@ -5,32 +5,38 @@ import Image from "next/image";
 import Link from "next/link";
 import { CircleUserRound } from "lucide-react"
 
+import Modal from "./modal";
+
 import { createClient } from "@/util/supabase/client";
+import { createPortal } from "react-dom";
 
 export default function Menu() {
     const supabase = createClient();
 
-    const [userLoggedIn, setUserLoggedIn] = useState(false);
+    // const [userLoggedIn, setUserLoggedIn] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
     useEffect(() => {
         supabase.auth.getUser().then((res => {
             if (res.data.user) {
-                setUserLoggedIn(true);
+                // setUserLoggedIn(true);
                 // Get avatar URL from user metadata (provided by Google OAuth)
                 const avatarUrl = res.data.user.user_metadata?.avatar_url ||
                     res.data.user.user_metadata?.picture;
                 setAvatarUrl(avatarUrl);
             } else {
-                setUserLoggedIn(false);
+                // setUserLoggedIn(false);
                 setAvatarUrl(null);
             }
         }))
     }, [supabase.auth]);
 
+    const userLoggedIn = avatarUrl !== null;
+
+
 
     return (
-        <div className="dropdown ">
+        <div className="dropdown dropdown-end ">
             <button tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
                 {userLoggedIn && avatarUrl ? (
                     <div className="w-10 rounded-full">
@@ -52,7 +58,7 @@ export default function Menu() {
                     <>
                         <li><Link href="/" className="text-center">My Stories</Link></li>
                         <li>
-                            <button className="text-error" onClick={() => document.getElementById('my_modal_2')!.showModal()}>Sign out</button>
+                            <button className="text-error" onClick={() => (document.getElementById('modal') as HTMLDialogElement).showModal()}>Sign out</button>
                         </li>
                     </>
                 ) : (

@@ -1,18 +1,42 @@
 'use client'
+import { useRouter } from "next/navigation";
 
-import { motion } from "motion/react"
+import { createClient } from "@/util/supabase/client"
 
 export default function Modal() {
+    const router = useRouter();
+    const closeBtnRef = (node: HTMLButtonElement) => { if (node) node.focus(); };
+
+    const supabase = createClient();
+
+    const handleSignOut = (e: React.FormEvent) => {
+        e.preventDefault();
+        supabase.auth.signOut({
+            scope: "global",
+        }).then(({ error }) => {
+            if (error) {
+                console.error("Error signing out:", error);
+            } else {
+                console.log("Sign-out successful");
+                // close the modal
+                (document.getElementById('modal') as HTMLDialogElement).close();
+                // Redirect to home after sign-out
+                router.push('/auth');
+            }
+        });
+    };
+
     {/* Open the modal using document.getElementById('ID').showModal() method */ }
     return (
-        <motion.dialog animate initial={{ x: '-100%' }} exit={{ x: 0 }} id="my_modal_2" className="modal">
+        <dialog id="modal" className="modal ">
             <div className="modal-box">
-                <h3 className="font-bold text-lg">Hello!</h3>
-                <p className="py-4">Press ESC key or click outside to close</p>
+                <h3 className="font-bold text-lg text-warning">Hold up!</h3>
+                <p className="py-4">Are you sure you want to sign out?</p>
+                <form method="dialog" className="modal-action">
+                    <button ref={closeBtnRef} className="btn rounded-md btn-active">Cancel</button>
+                    <button className="btn text-error-content rounded-md btn-error" onClick={handleSignOut}>Sign out</button>
+                </form>
             </div>
-            <form method="dialog" className="modal-backdrop">
-                <button>close</button>
-            </form>
-        </motion.dialog>
+        </dialog>
     )
 }
