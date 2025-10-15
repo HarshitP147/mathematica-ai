@@ -12,16 +12,14 @@ export default function Modal() {
     const handleSignOut = (e: React.FormEvent) => {
         e.preventDefault();
         supabase.auth.signOut({
-            scope: "global",
         }).then(({ error }) => {
             if (error) {
                 console.error("Error signing out:", error);
             } else {
                 console.log("Sign-out successful");
-                // close the modal
                 (document.getElementById('modal') as HTMLDialogElement).close();
-                // Redirect to home after sign-out
-                router.push('/auth');
+                router.push('/');
+                router.refresh()
             }
         });
     };
@@ -30,7 +28,7 @@ export default function Modal() {
     return (
         <dialog id="modal" className="modal ">
             <div className="modal-box">
-                <h3 className="font-bold text-lg text-warning">Hold up!</h3>
+                <h3 className="font-bold text-lg ">Hold up!</h3>
                 <p className="py-4">Are you sure you want to sign out?</p>
                 <form method="dialog" className="modal-action">
                     <button ref={closeBtnRef} className="btn rounded-md btn-active">Cancel</button>
