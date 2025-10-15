@@ -1,21 +1,18 @@
 'use client'
 
-import { useRouter } from "next/navigation";
 import Image from "next/image";
+
 import { createClient } from "@/util/supabase/client"
 
 export default function Page() {
-    const router = useRouter();
-
     const supabase = createClient()
-
 
 
     const handleGoogleLogin = async () => {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                // redirectTo: `http://${window.location.host}/auth/callback`,
+                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
                 // redirectTo: "http://localhost:3000/auth/callback",
                 scopes: 'openid email profile',
             },
