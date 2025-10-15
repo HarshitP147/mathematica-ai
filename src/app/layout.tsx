@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import "./globals.css";
 
@@ -32,19 +31,17 @@ export default function RootLayout({
 
     return (
         <html lang="en" data-theme="forest">
-            <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
-                <body
-                    className={`${geistSans.variable} ${geistMono.variable} antialiased `}
-                >
-                    <Navbar />
+            <body
+                className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+            >
+                <Navbar />
 
-                    {/* Add padding to prevent content from being hidden behind navbar */}
-                    <main>
-                        {children}
-                    </main>
-                    <Modal />
-                </body>
-            </GoogleOAuthProvider>
+                {/* Add padding to prevent content from being hidden behind navbar */}
+                <main>
+                    {children}
+                </main>
+                <Modal />
+            </body>
         </html>
     );
 }
