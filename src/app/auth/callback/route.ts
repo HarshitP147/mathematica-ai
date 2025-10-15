@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 // The client you created from the Server-Side Auth instructions
-import { createClient } from "@/util/supabase/server"
+import { createClient } from "@/util/supabase/server";
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url);
@@ -22,6 +22,7 @@ export async function GET(request: Request) {
                 // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
                 return NextResponse.redirect(`${origin}${next}`);
             } else if (forwardedHost) {
+                // return NextResponse.redirect(`http://${forwardedHost}${next}`);
                 return NextResponse.redirect(`https://${forwardedHost}${next}`);
             } else {
                 return NextResponse.redirect(`${origin}${next}`);

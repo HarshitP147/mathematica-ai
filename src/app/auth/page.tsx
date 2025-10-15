@@ -10,11 +10,13 @@ export default function Page() {
     const supabase = createClient()
 
 
+
     const handleGoogleLogin = async () => {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${window.location.origin}/auth/callback`,
+                // redirectTo: `http://${window.location.host}/auth/callback`,
+                // redirectTo: "http://localhost:3000/auth/callback",
                 scopes: 'openid email profile',
             },
         })
@@ -22,6 +24,7 @@ export default function Page() {
         if (error) {
             console.error("Error during Google OAuth sign-in:", error);
         }
+
     }
 
 
