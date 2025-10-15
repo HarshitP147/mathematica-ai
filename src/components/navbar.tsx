@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import Menu from "@/components/menu";
+import Avatar from "@/components/avatar";
 
 
 export default function Navbar() {
@@ -21,7 +21,7 @@ export default function Navbar() {
                     </div>
                 </div>
                 <div className="navbar-end">
-                    <Menu />
+                    <Avatar />
                 </div>
             </nav>
         </div>
