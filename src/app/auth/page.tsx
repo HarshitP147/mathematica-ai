@@ -7,13 +7,13 @@ import { createClient } from "@/util/supabase/client"
 export default function Page() {
     const supabase = createClient()
 
+    const redirectUrl = process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback` : `${window.location.origin}/auth/callback`;
 
     const handleGoogleLogin = async () => {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-                // redirectTo: "http://localhost:3000/auth/callback",
+                redirectTo: redirectUrl,
                 scopes: 'openid email profile',
             },
         })
