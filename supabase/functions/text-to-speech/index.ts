@@ -1,23 +1,19 @@
 import "supabase";
-import { createClient } from "supabase-js";
+import { createClient, type SupabaseClient } from "supabase-js";
 import { ElevenLabsClient } from "elevenlabs";
 import * as hash from "object-hash";
 
+import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
 // Initialize Supabase client
-
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL") ?? "",
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
-    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-);
 
 const elevenlabs = new ElevenLabsClient({
   apiKey: Deno.env.get("ELEVENLABS_API_KEY") ?? "",
 });
 
 async function uploadAudioToStorage(
+  supabase: SupabaseClient,
   stream: ReadableStream,
   requestHash: string,
 ) {
@@ -29,16 +25,27 @@ async function uploadAudioToStorage(
 
   console.log("Storage upload result:", { data, error });
 }
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("OK", { headers: corsHeaders });
+  }
   }
 
   // Only allow POST requests
   if (req.method !== "POST") {
     return new Response("Method Not Allowed", { status: 405 });
   }
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    {
+      global: {
+        headers: { Authorization: req.headers.get("Authorization") || "" },
+      },
+    },
+  );
 
   const params = new URL(req.url).searchParams;
 
@@ -60,28 +67,17 @@ Deno.serve(async (req) => {
   console.log(`Request hash: ${requestHash}`);
 
   // check if audio bucket exists
-  const { data: bucketData, error: bucketError } = await supabase.storage
+  const { error: bucketError } = await supabase.storage
     .getBucket("audio");
   if (bucketError) {
     console.log("Audio bucket not found, creating...");
-    const { data, error } = await supabase.storage.createBucket("audio", {
+    const { data: bucketData, error } = await supabase.storage.createBucket("audio", {
       public: true, // keeping true for now, but should be false for production
       fileSizeLimit: 50 * 1024 * 1024, // 50MB
     });
     if (error) {
       console.error("Error creating audio bucket:", error);
-      return new Response(
-        JSON.stringify({ error: "Failed to create storage bucket" }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        },
-      );
-    }
-    console.log("Audio bucket created:", data);
-  } else {
-    console.log("Audio bucket exists:", bucketData);
-  }
+  } 
 
   // check for existing audio file
   const { data } = await supabase.storage.from("audio").createSignedUrl(
@@ -129,7 +125,7 @@ Deno.serve(async (req) => {
     const [browserStream, storageStream] = stream.tee();
 
     // upload to supabase storage in the background
-    EdgeRuntime.waitUntil(uploadAudioToStorage(storageStream, requestHash));
+    EdgeRuntime.waitUntil(uploadAudioToStorage(supabase,storageStream, requestHash));
 
     return new Response(browserStream, {
       headers: {

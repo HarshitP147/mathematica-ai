@@ -37,7 +37,7 @@ export default function RootLayout({
                 <Navbar />
 
                 {/* Add padding to prevent content from being hidden behind navbar */}
-                <main>
+                <main className="min-h-screen flex items-center justify-center flex-col p-6">
                     {children}
                 </main>
                 <Modal />

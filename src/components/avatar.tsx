@@ -6,7 +6,9 @@ import { createClient } from "@/util/supabase/server"
 import Menu from "@/components/menu";
 
 export default async function Avatar() {
+
     const supabase = createClient();
+
     const { data: { user } } = await supabase.auth.getUser();
 
     const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
