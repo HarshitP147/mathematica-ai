@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
 
-import Navbar from "@/components/navbar";
+import Drawer from "@/components/drawer";
 import Modal from "@/components/modal";
 
 
@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Sceal AI",
-    description: "Platform for storytelling and narration with AI",
+    title: "PCM Chat - Your AI assistant for learning science",
+    description: "AI assistant chat platform for learning science and beyond",
 };
 
 
@@ -30,16 +30,14 @@ export default function RootLayout({
 }>) {
 
     return (
-        <html lang="en" data-theme="forest">
+        <html lang="en" data-theme="dark" >
             <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+                className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-row h-screen `}
             >
-                <Navbar />
-
-                {/* Add padding to prevent content from being hidden behind navbar */}
-                <main className="min-h-screen flex items-center justify-center flex-col p-6">
+                <Drawer >
                     {children}
-                </main>
+                </Drawer>
+
                 <Modal />
             </body>
         </html>

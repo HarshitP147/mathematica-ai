@@ -1,8 +1,0 @@
-{
-  "imports": {
-    "supabase": "jsr:@supabase/functions-js/edge-runtime.d.ts",
-    "supabase-js": "jsr:@supabase/supabase-js@2",
-    "elevenlabs": "npm:elevenlabs",
-    "object-hash": "npm:object-hash"
-  }
-}
