@@ -104,7 +104,7 @@ const fakeChatLinksToIds = [
 	{ id: "chat-100", name: "Chaos Theory" },
 ];
 
-export default async function ChatList({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ChatList() {
 
 	return (
 		<div className=" overflow-y-scroll">
