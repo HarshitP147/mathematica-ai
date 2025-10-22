@@ -3,8 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
 
-import Drawer from "@/components/drawer";
-import Modal from "@/components/modal";
+import AppSidebar from "@/components/app-sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -29,15 +30,28 @@ export default function RootLayout({
 }>) {
 
     return (
-        <html lang="en" >
+        <html lang="en" suppressHydrationWarning>
             <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-row h-screen `}
+                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                    <Drawer >
-                        {children}
-                    </Drawer>
-
-                    <Modal />
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    <SidebarProvider>
+                        <AppSidebar />
+                        <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <main className="flex-1 overflow-auto">
+                                {children}
+                            </main>
+                        </SidebarInset>
+                    </SidebarProvider>
+                </ThemeProvider>
             </body>
         </html>
     );

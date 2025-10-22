@@ -1,4 +1,5 @@
 import ChatLink from "@/components/chat-link";
+import { SidebarMenu } from "@/components/ui/sidebar";
 
 // generate 100 fake chat links with random scientific and computer related names
 const fakeChatLinksToIds = [
@@ -107,12 +108,10 @@ const fakeChatLinksToIds = [
 export default async function ChatList() {
 
 	return (
-		<div className=" overflow-y-scroll">
-			<div className="flex flex-col gap-y-2 ">
-				{fakeChatLinksToIds.map((chat) => {
-					return <ChatLink key={chat.id} chatId={chat.id} name={chat.name} />;
-				})}
-			</div>
-		</div>
+		<SidebarMenu className="gap-1">
+			{fakeChatLinksToIds.map((chat) => {
+				return <ChatLink key={chat.id} chatId={chat.id} name={chat.name} />;
+			})}
+		</SidebarMenu>
 	)
 }

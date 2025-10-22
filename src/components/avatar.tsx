@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { CircleUserRound } from "lucide-react";
 
+import { AvatarFallback, Avatar as UserAvatar, } from '@/components/ui/avatar'
+
 import { createClient } from "@/util/supabase/server"
 
 
@@ -14,9 +16,9 @@ export default async function Avatar() {
     const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
 
     return (
-        <div className="btn btn-ghost btn-circle avatar ">
+        <UserAvatar>
             <Link href={"/settings"}>
-                {avatarUrl ? (
+                {avatarUrl ?
                     <Image
                         src={avatarUrl}
                         width={48}
@@ -24,11 +26,13 @@ export default async function Avatar() {
                         alt="User Avatar"
                         className="rounded-full"
                     />
-                ) : (
-                    <CircleUserRound size={32} />
-                )}
+                    :
+                    <CircleUserRound />
+                }
+                <AvatarFallback>
+                    <CircleUserRound />
+                </AvatarFallback>
             </Link>
-        </div>
-
+        </UserAvatar>
     )
 }

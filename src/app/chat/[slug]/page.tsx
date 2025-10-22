@@ -118,6 +118,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     return (
         <main className="min-h-screen min-w-full">
             <h1 className="text-2xl font-bold mb-4">{chat ? chat.name : resolvedParams.slug}</h1>
+
+            <form className="w-full border border-white">
+                {/* accent multiple file input */}
+                <input type="file" multiple className="file-input file-input-bordered w-full mb-4" />
+                {/* accept text input */}
+                <textarea className="textarea " placeholder="Enter your prompt..." />
+            </form>
         </main>
     )
 }
