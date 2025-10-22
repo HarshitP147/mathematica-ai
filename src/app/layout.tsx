@@ -6,7 +6,6 @@ import "./globals.css";
 import Drawer from "@/components/drawer";
 import Modal from "@/components/modal";
 
-
 const geistSans = Geist({
     variable: "--font-geist-sans",
     subsets: ["latin"],
@@ -30,15 +29,15 @@ export default function RootLayout({
 }>) {
 
     return (
-        <html lang="en" data-theme="dark" >
+        <html lang="en" >
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-row h-screen `}
             >
-                <Drawer >
-                    {children}
-                </Drawer>
+                    <Drawer >
+                        {children}
+                    </Drawer>
 
-                <Modal />
+                    <Modal />
             </body>
         </html>
     );

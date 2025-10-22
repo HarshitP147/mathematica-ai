@@ -11,7 +11,7 @@ export default  function ChatLink(props: { chatId: string, name: string }) {
 
     return (
         <Link href={`/chat/${props.chatId}`}
-            className={` p-2 rounded-md transition-colors text-lg text-white ${isActive ? "bg-primary " : "hover:bg-primary/70"}`}
+            className={` p-2 rounded-md transition-colors text-lg text-base-content ${isActive ? "bg-primary " : "hover:bg-primary/70"}`}
         >
             {props.name}
         </Link>
