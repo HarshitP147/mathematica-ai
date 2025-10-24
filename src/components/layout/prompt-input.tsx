@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, type ChangeEvent } from "react"
+import {  usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion"
 import { ImageIcon, SendIcon, XIcon, FileIcon } from "lucide-react"
 
@@ -21,6 +22,8 @@ interface FilePreview {
 }
 
 export function PromptInput() {
+    const pathname = usePathname();
+
     const [input, setInput] = useState("")
     const [files, setFiles] = useState<FilePreview[]>([])
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -64,7 +67,7 @@ export function PromptInput() {
     const handleSubmit = () => {
         if (!hasContent) return
 
-        someAction(input, files)
+        someAction(input, files, pathname)
 
         // Clean up previews
         files.forEach((file) => {
@@ -79,7 +82,7 @@ export function PromptInput() {
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === "Enter" && !e.shiftKey) {
+        if (e.key === "Enter" && !e.shiftKey && e.ctrlKey) {
 
             handleSubmit()
         }
@@ -88,7 +91,7 @@ export function PromptInput() {
     return (
         <>
             <ScrollToBottom containerId="chat-messages-container" />
-            <form className="relative rounded-2xl border border-border dark:bg-white/5 backdrop-blur-md dark:backdrop-blur-[2px]  shadow-lg">
+            <form className="relative rounded-2xl border border-border w-full dark:bg-white/5 backdrop-blur-md dark:backdrop-blur-[2px] shadow-lg">
                 {/* File Previews */}
                 {files.length > 0 && (
                     <div className="p-3 border-b border-border">
@@ -157,7 +160,7 @@ export function PromptInput() {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Describe your image..."
+                        placeholder="Ask something here..."
                         className={"flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground min-h-[40px] max-h-[200px] px-2 py-2.5"}
                         rows={1}
                         style={{
@@ -184,9 +187,18 @@ export function PromptInput() {
                                     damping: 30,
                                 }}
                             >
-                                <Button size="icon" className="shrink-0 rounded-full" >
-                                    <SendIcon className="w-5 h-5" />
-                                </Button>
+                                <TooltipProvider delayDuration={300}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button size="icon" className="shrink-0 rounded-full" onClick={handleSubmit}>
+                                                <SendIcon className="w-5 h-5" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p className="text-xs">Send • Ctrl+Enter</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </motion.div>
                         )}
                     </AnimatePresence>

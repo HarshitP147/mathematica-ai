@@ -121,8 +121,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     return (
         <div className="min-h-screen min-w-full relative">
             <header className="border border-b  shadow-md  flex justify-around items-center-safe py-3  gap-x-3  ">
-                <SidebarTrigger className=" ml-3 hover:cursor-pointer p-4 rounded-full" />
-                <div className="flex-1  text-center ">
+                <SidebarTrigger className=" ml-3 justify-start hover:cursor-pointer p-4 rounded-full" />
+                <div className="flex-1 text-center ">
                     <h1 className="text-2xl font-bold ">{chat ? chat.name : resolvedParams.slug}</h1>
                 </div>
             </header>

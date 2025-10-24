@@ -2,6 +2,8 @@ import Link from 'next/link';
 
 import { createClient } from '@/util/supabase/server';
 
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { PromptInput } from '@/components/layout/prompt-input';
 
 export default async function Home() {
     const supabase = createClient();
@@ -10,13 +12,17 @@ export default async function Home() {
 
 
     return (
-        <div >
-            <div className="text-center">
-                <h1 className="text-4xl  font-bold mb-4">Welcome to Sceal AI</h1>
+        <div className='h-full'>
+            <SidebarTrigger className=" ml-3 justify-start hover:cursor-pointer p-4 rounded-full" />
+            <div className="text-center mt-[5%] ">
+
+                <h1 className="text-4xl  font-bold mb-4">Welcome to PCM Chat!</h1>
                 <p className="text-lg text-gray-600 mb-6">Your AI-powered assistant for seamless communication.</p>
                 {isSignedIn ? (
-                    <Link href="/story" className="btn btn-primary btn-lg mr-4">Go to My Stories</Link>
-                ) : (
+                    <div className="flex justify-center w-3/5 mx-auto gap-4">
+                        <PromptInput />
+                    </div>
+                    ) : (
                     <Link href="/auth" className="btn btn-primary btn-lg mr-4">Login / Sign Up</Link>
                 )}
             </div>
