@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
-import Avatar from "@/components/avatar";
-import ChatList from "@/components/chat-list";
+import Avatar from "@/components/atom/avatar";
+import ChatList from "@/components/layout/chat-list";
 
 import {
     Sidebar,

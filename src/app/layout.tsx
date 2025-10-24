@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 
 import "./globals.css";
 
-import AppSidebar from "@/components/app-sidebar";
+import AppSidebar from "@/components/layout/app-sidebar";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeProvider } from "@/components/theme-provider";
-
-const geistSans = Geist({
-    variable: "--font-geist-sans",
-    subsets: ["latin"],
-});
+import { ThemeProvider } from "@/context/theme-provider";
 
 const geistMono = Geist_Mono({
     variable: "--font-geist-mono",
@@ -32,7 +27,7 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+                className={`${geistMono.className}  antialiased`}
             >
                 <ThemeProvider
                     attribute="class"
@@ -42,13 +37,8 @@ export default function RootLayout({
                 >
                     <SidebarProvider>
                         <AppSidebar />
-                        <SidebarInset>
-                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                                <SidebarTrigger className="-ml-1" />
-                            </header>
-                            <main className="flex-1 overflow-auto">
-                                {children}
-                            </main>
+                        <SidebarInset className="h-screen overflow-hidden relative">
+                            {children}
                         </SidebarInset>
                     </SidebarProvider>
                 </ThemeProvider>

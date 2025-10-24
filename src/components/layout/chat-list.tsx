@@ -1,4 +1,4 @@
-import ChatLink from "@/components/chat-link";
+import ChatLink from "@/components/atom/chat-link";
 import { SidebarMenu } from "@/components/ui/sidebar";
 
 // generate 100 fake chat links with random scientific and computer related names
