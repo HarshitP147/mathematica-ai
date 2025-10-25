@@ -148,7 +148,7 @@ export function PromptInput() {
                     <input
                         ref={fileInputRef}
                         type="file"
-                        accept="*/*"
+                        accept="image/*"
                         multiple
                         className="hidden"
                         onChange={handleFileChange}
