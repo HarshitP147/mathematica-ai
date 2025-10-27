@@ -82,7 +82,7 @@ export function PromptInput() {
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === "Enter" && !e.shiftKey && e.ctrlKey) {
+        if (e.key === "Enter" && e.ctrlKey) {
 
             handleSubmit()
         }
