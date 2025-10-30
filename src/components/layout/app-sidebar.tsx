@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 
 import Avatar from "@/components/atom/avatar";
 import ChatList from "@/components/layout/chat-list";
+import { createClient } from "@/util/supabase/server";
 
 import {
     Sidebar,
@@ -16,13 +17,17 @@ import {
     SidebarSeparator,
 } from "@/components/ui/sidebar";
 
-export default function AppSidebar() {
+export default async function AppSidebar() {
+    const supabase = createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+
     return (
         <Sidebar>
             <SidebarHeader className="border-b">
                 <div className="flex flex-row items-center py-4 px-4 justify-between">
-                    <Link href="/" className="text-2xl font-semibold">
-                        PCM Chat
+                    <Link href="/" className="text-lg font-semibold">
+                        {user?.user_metadata.full_name || "Mathematica AI"}
                     </Link>
                     <Avatar />
                 </div>

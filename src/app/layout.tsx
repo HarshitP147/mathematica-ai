@@ -4,8 +4,10 @@ import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import AppSidebar from "@/components/layout/app-sidebar";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/context/theme-provider";
+
+import { createClient } from "@/util/supabase/server";
 
 const geistMono = Geist_Mono({
     variable: "--font-geist-mono",
@@ -18,11 +20,20 @@ export const metadata: Metadata = {
 };
 
 
-export default function RootLayout({
+
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const supabase = createClient();
+
+    // server-side check for authenticated user
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    const isSignedIn = !!user;
 
     return (
         <html lang="en" suppressHydrationWarning>
@@ -36,7 +47,7 @@ export default function RootLayout({
                     disableTransitionOnChange
                 >
                     <SidebarProvider>
-                        <AppSidebar />
+                        {isSignedIn && <AppSidebar />}
                         <SidebarInset className="h-screen overflow-hidden relative">
                             {children}
                         </SidebarInset>
