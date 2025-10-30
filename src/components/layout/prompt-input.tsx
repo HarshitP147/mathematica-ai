@@ -44,11 +44,32 @@ export default function PromptInput() {
             return;
         }
 
-        for await (const chunk of response.body) {
-            // chunk is in UInt8Array type and we need to convert it to string
-            const text = new TextDecoder().decode(chunk);
+        if (!response.body) {
+            // Fallback to read full text if stream is not available
+            const text = await response.text();
             setResponseText((prev) => prev + text);
+            return;
+        }
 
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                if (value) {
+                    // value is a Uint8Array
+                    setResponseText((prev) => prev + decoder.decode(value, { stream: true }));
+                }
+            }
+        } finally {
+            // ensure the reader is released
+            try {
+                reader.releaseLock();
+            } catch {
+                // ignore release errors
+            }
         }
     }
 
