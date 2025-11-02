@@ -4,10 +4,18 @@ import { AnimatePresence, motion } from "motion/react"
 import { SendIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 
-export default function SubmitButton({ hasContent }: { hasContent: boolean }) {
+type SubmitButtonProps = {
+    hasContent: boolean;
+    onClick?: () => void;
+    isLoading: boolean;
+}
+
+
+export default function SubmitButton({ hasContent, onClick, isLoading }: SubmitButtonProps) {
     return (
         <AnimatePresence mode="wait">
             {hasContent && (
@@ -20,12 +28,17 @@ export default function SubmitButton({ hasContent }: { hasContent: boolean }) {
                         stiffness: 500,
                         damping: 30,
                     }}
+                    onClick={onClick}
                 >
                     <TooltipProvider delayDuration={300}>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button size="icon" className="shrink-0 rounded-full">
-                                    <SendIcon className="w-5 h-5" />
+                                <Button disabled={isLoading} size="icon" className="shrink-0 rounded-full">
+                                    {isLoading ? (
+                                        <Spinner className="w-5 h-5" />
+                                    ) : (
+                                        <SendIcon className="w-5 h-5" />
+                                    )}
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent side="top">

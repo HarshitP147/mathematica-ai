@@ -11,21 +11,42 @@
             "type": "http",
             "url": "http://localhost:54321/mcp"
         },
-        "context7":{
-            "type":"stdio",
-            "command":"npx",
-            "args": ["-y", "@upstash/context7-mcp", "--api-key", "${input:context7ApiKey}"]
+        "context7": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "@upstash/context7-mcp",
+                "--api-key",
+                "${input:context7ApiKey}"
+            ]
         },
-        "motion":{
-            "command":"npx",
-            "args": ["-y", "motion-ai"]
+        "motion": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "motion-ai"
+            ]
+        },
+        "prompt-kit": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "shadcn@canary",
+                "mcp"
+            ],
+            "env": {
+                "REGISTRY_URL": "https://www.prompt-kit.com/c/registry.json"
+            }
         }
     },
     "inputs": [
+
         {
-            "id":"context7ApiKey",
-            "type":"promptString",
-            "description":"Enter your Context7 API Key",
+            "id": "context7ApiKey",
+            "type": "promptString",
+            "description": "Enter your Context7 API Key",
             "password": false
         }
     ]

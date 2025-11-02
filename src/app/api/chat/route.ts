@@ -4,6 +4,10 @@ import { google, GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 
 export const maxDuration = 300; // 5 minutes
 
+export async function GET() {
+    return new Response("Chat endpoint is live");
+}
+
 export async function POST(req: Request) {
     const { prompt } = await req.json();
     console.clear();
@@ -36,6 +40,7 @@ export async function POST(req: Request) {
                         controller.enqueue(
                             new TextEncoder().encode("<text-end>"),
                         );
+                        controller.close();
                         break;
                     case "reasoning-start":
                         controller.enqueue(
@@ -54,6 +59,8 @@ export async function POST(req: Request) {
                         );
                         break;
                 }
+
+
             }
         },
     });
