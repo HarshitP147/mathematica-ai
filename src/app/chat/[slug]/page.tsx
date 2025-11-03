@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
+'use client'
+
 
 import ChatPromptInput from "@/components/layout/chat-prompt";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ResponseExample from "@/components/atom/response-example";
-
-export const metadata: Metadata = {
-};
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
     const resolvedParams = await params;
@@ -28,4 +26,4 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
             </footer>
         </div>
     )
-}
+}   
