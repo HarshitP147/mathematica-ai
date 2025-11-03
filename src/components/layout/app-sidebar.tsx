@@ -31,26 +31,16 @@ export default async function AppSidebar() {
                     </Link>
                     <Avatar />
                 </div>
+                <SidebarMenuButton asChild size="lg" className="w-full hover:bg-primary active:bg-primary/80">
+                    <Link href="/">
+                        <Plus className="h-5 w-5" />
+                        <span>New Chat</span>
+                    </Link>
+                </SidebarMenuButton>
             </SidebarHeader>
 
+
             <SidebarContent>
-                <SidebarGroup>
-                    <SidebarGroupContent>
-                        <SidebarMenu>
-                            <SidebarMenuItem>
-                                <SidebarMenuButton asChild size="lg" className="w-full hover:bg-primary active:bg-primary/80">
-                                    <Link href="/">
-                                        <Plus className="h-5 w-5" />
-                                        <span>New Chat</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
-
-                <SidebarSeparator />
-
                 <SidebarGroup className="flex-1">
                     <SidebarGroupContent className="h-full">
                         <ChatList />
