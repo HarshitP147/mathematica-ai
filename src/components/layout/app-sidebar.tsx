@@ -11,10 +11,7 @@ import {
     SidebarGroup,
     SidebarGroupContent,
     SidebarHeader,
-    SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarSeparator,
 } from "@/components/ui/sidebar";
 
 export default async function AppSidebar() {

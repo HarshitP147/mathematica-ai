@@ -2,6 +2,7 @@
 
 import type { KeyboardEvent } from "react"
 import { useState } from "react"
+import { useParams } from "next/navigation"
 
 import {
     PromptInput,
@@ -16,6 +17,9 @@ import { Button } from "@/components/ui/button"
 export default function ChatPromptInput() {
     const [prompt, setPrompt] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const { slug } = useParams();
+
+
 
     function handleValueChange(value: string) {
         setPrompt(value);
@@ -25,56 +29,62 @@ export default function ChatPromptInput() {
         event?.preventDefault();
         setIsLoading(true);
 
-        
-        // Handle the chat action (e.g., send the prompt to the backend)
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            body: JSON.stringify({ prompt }),
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            keepalive: true,
-        })
+        let chatId = slug ?? '/';
 
+        console.log("Submitted prompt:", prompt, "for chat:", chatId);
+
+
+        // // Handle the chat action (e.g., send the prompt to the backend)
+        // const response = await fetch('/api/chat', {
+        //     method: 'POST',
+        //     body: JSON.stringify({ prompt }),
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     },
+        //     keepalive: true,
+        // })
+
+        // setPrompt("");
+
+
+        // if (!response.ok) {
+        //     console.error("Failed to send prompt");
+        //     setIsLoading(false);
+        //     return;
+        // }
+
+        // if (!response.body) {
+        //     // Fallback to read full text if stream is not available
+        //     const text = await response.text();
+        //     console.log("Response text:", text);
+        //     setIsLoading(false);
+        //     return;
+        // }
+
+        // const reader = response.body.getReader();
+        // const decoder = new TextDecoder();
+
+        // try {
+        //     while (true) {
+        //         const { done, value } = await reader.read();
+        //         if (done) break;
+        //         if (value) {
+        //             // value is a Uint8Array
+        //             console.log(decoder.decode(value, { stream: true }));
+        //         }
+        //     }
+        // } finally {
+        //     // ensure the reader is released
+        //     try {
+        //         reader.releaseLock();
+        //     } catch {
+        //         // ignore release errors
+        //     }
+        //     setIsLoading(false);
+        // }
+
+        setIsLoading(false);
         setPrompt("");
-
-
-        if (!response.ok) {
-            console.error("Failed to send prompt");
-            setIsLoading(false);
-            return;
-        }
-
-        if (!response.body) {
-            // Fallback to read full text if stream is not available
-            const text = await response.text();
-            console.log("Response text:", text);
-            setIsLoading(false);
-            return;
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-
-        try {
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                if (value) {
-                    // value is a Uint8Array
-                    console.log(decoder.decode(value, { stream: true }));
-                }
-            }
-        } finally {
-            // ensure the reader is released
-            try {
-                reader.releaseLock();
-            } catch {
-                // ignore release errors
-            }
-            setIsLoading(false);
-        }
-
     }
 
     function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
