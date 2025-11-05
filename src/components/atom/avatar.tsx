@@ -17,22 +17,20 @@ export default async function Avatar() {
 
     return (
         <UserAvatar>
-            <Link href={"/settings"}>
-                {avatarUrl ?
-                    <Image
-                        src={avatarUrl}
-                        width={48}
-                        height={48}
-                        alt="User Avatar"
-                        className="rounded-full"
-                    />
-                    :
-                    <CircleUserRound />
-                }
-                <AvatarFallback>
-                    <CircleUserRound />
-                </AvatarFallback>
-            </Link>
+            {avatarUrl ?
+                <Image
+                    src={avatarUrl}
+                    width={48}
+                    height={48}
+                    alt="User Avatar"
+                    className="rounded-full"
+                />
+                :
+                <CircleUserRound />
+            }
+            <AvatarFallback>
+                <CircleUserRound />
+            </AvatarFallback>
         </UserAvatar>
     )
 }

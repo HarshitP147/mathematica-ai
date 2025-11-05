@@ -17,7 +17,7 @@ export default function Toggle() {
     };
 
     return (
-        <div className="flex items-center space-x-4">
+        <div className="flex  items-center justify-between space-x-4">
             <Label htmlFor="theme-toggle">Dark Mode</Label>
             <Switch
                 id="theme-toggle"
