@@ -11,7 +11,8 @@ import { createClient } from "@/util/supabase/server";
 export default async function ChatList() {
 	const supabase = createClient();
 
-	const chats = await supabase.from("chats").select("chat_id, chat_name");
+	// return by order of most recently created 
+	const chats = await supabase.from("chats").select("chat_id, chat_name").order('created_at', { ascending: false });
 
 	return (
 		<SidebarMenu className="gap-1">

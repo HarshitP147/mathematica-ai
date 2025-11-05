@@ -23,17 +23,11 @@ export default async function Home() {
                             Welcome to Mathematica AI!
                         </h1>
                     </EmptyTitle>
-                    {/* <h1 className='text-4xl font-bold  text-nowrap'>Welcome to PCM Chat!</h1> */}
                     <p className='text-lg text-foreground'>Your AI chat assistant.</p>
                     {isSignedIn ? (
-
-                        // <div className="flex justify-center w-3/5 mx-auto gap-4">
-                        // </div>
-
                         <div className='mb-4 w-[200%]'>
                             <ChatPromptInput />
                         </div>
-
                     ) : (
                         <Button asChild>
                             <Link href="/auth" className="btn btn-primary btn-lg mr-4">Login / Sign Up</Link>

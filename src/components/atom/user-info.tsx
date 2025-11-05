@@ -1,8 +1,7 @@
-import Link from "next/link"
 
 import Settings from "@/components/layout/settings";
 import Avatar from "@/components/atom/avatar";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 
 import { createClient } from "@/util/supabase/server";
 

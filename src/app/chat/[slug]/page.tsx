@@ -1,6 +1,3 @@
-'use client'
-
-
 import ChatPromptInput from "@/components/layout/chat-prompt";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ResponseExample from "@/components/atom/response-example";

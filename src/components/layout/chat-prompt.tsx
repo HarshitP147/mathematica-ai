@@ -2,7 +2,7 @@
 
 import type { KeyboardEvent } from "react"
 import { useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter,  } from "next/navigation"
 
 import {
     PromptInput,
@@ -18,6 +18,7 @@ export default function ChatPromptInput() {
     const [prompt, setPrompt] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const { slug } = useParams();
+    const router = useRouter();
 
 
 
@@ -31,7 +32,38 @@ export default function ChatPromptInput() {
 
         let chatId = slug ?? '/';
 
-        console.log("Submitted prompt:", prompt, "for chat:", chatId);
+        try {
+
+            const response = await fetch("/api/index", {
+                method: "POST",
+                body: JSON.stringify({ chatName: prompt }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to create chat");
+            } 
+
+            const data = await response.json();
+            console.log(data);
+
+            setPrompt("");
+            
+            // Redirect to the new chat page
+            router.push(`/chat/${data.chatId}`);
+            
+            // Refresh to update the chat list in the sidebar
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+
+
+
 
 
         // // Handle the chat action (e.g., send the prompt to the backend)
@@ -83,8 +115,6 @@ export default function ChatPromptInput() {
         //     setIsLoading(false);
         // }
 
-        setIsLoading(false);
-        setPrompt("");
     }
 
     function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
