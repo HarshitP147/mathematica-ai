@@ -10,6 +10,7 @@ import ChatPromptInput from '@/components/layout/chat-prompt';
 export default async function Home() {
     const supabase = createClient();
 
+    // server-side check for authenticated user
     let isSignedIn = (await supabase.auth.getUser()).data.user !== null;
 
     return (
@@ -25,7 +26,7 @@ export default async function Home() {
                     <p className='text-lg text-foreground'>Your AI chat assistant.</p>
                     {isSignedIn ? (
                         <div className='mb-4 w-[200%]'>
-                            <ChatPromptInput />
+                            <ChatPromptInput  />
                         </div>
                     ) : (
                         <Button asChild>

@@ -2,7 +2,7 @@
 
 import type { KeyboardEvent } from "react"
 import { useState } from "react"
-import { useParams, useRouter,  } from "next/navigation"
+import { useParams, useRouter, } from "next/navigation"
 
 import {
     PromptInput,
@@ -14,13 +14,11 @@ import SubmitButton from "@/components/atom/submit-button"
 import { Button } from "@/components/ui/button"
 
 
-export default function ChatPromptInput() {
+export default function ChatPromptInput({ onPromptSubmit }: { onPromptSubmit?: () => void }) {
     const [prompt, setPrompt] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const { slug } = useParams();
     const router = useRouter();
-
-
 
     function handleValueChange(value: string) {
         setPrompt(value);
@@ -30,42 +28,45 @@ export default function ChatPromptInput() {
         event?.preventDefault();
         setIsLoading(true);
 
+        onPromptSubmit!();
+
         let chatId = slug ?? '/';
 
         console.log(chatId)
+        console.log(prompt);
 
-        try {
+        setIsLoading(false);
+        setPrompt("");
 
-            const response = await fetch("/api/index", {
-                method: "POST",
-                body: JSON.stringify({ prompt: prompt }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+        // try {
 
-            if (!response.ok) {
-                throw new Error("Failed to create chat");
-            } 
+        //     const response = await fetch("/api/index", {
+        //         method: "POST",
+        //         body: JSON.stringify({ prompt: prompt }),
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         }
+        //     });
 
-            const data = await response.json();
-            console.log(data);
+        //     if (!response.ok) {
+        //         throw new Error("Failed to create chat");
+        //     } 
 
-            setPrompt("");
-            
-            // Redirect to the new chat page
-            router.push(`/chat/${data.chatId}`);
-            
-            // Refresh to update the chat list in the sidebar
-            router.refresh();
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
+        //     const data = await response.json();
+        //     console.log(data);
 
+        //     setPrompt("");
 
+        //     // Redirect to the new chat page
+        //     router.push(`/chat/${data.chatId}`);
 
+        //     // Refresh to update the chat list in the sidebar
+        //     router.refresh();
+        // } catch (error) {
+        //     console.error(error);
+        // } finally {
+        //     setIsLoading(false);
+        // }
 
 
         // // Handle the chat action (e.g., send the prompt to the backend)
@@ -141,7 +142,7 @@ export default function ChatPromptInput() {
                 className="text-foreground bg-transparent" />
             <PromptInputActions>
                 <PromptInputAction className="justify-end" tooltip={false}>
-                    <Button asChild onClick={handleSubmit}>
+                    <Button asChild onClick={onPromptSubmit}>
                         <SubmitButton isLoading={isLoading} hasContent={prompt.trim().length !== 0} />
                     </Button>
                 </PromptInputAction>

@@ -6,18 +6,23 @@ import ResponseExample from "@/components/atom/response-example";
 
 import { createClient } from "@/util/supabase/server";
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-    const resolvedParams = await params;
+async function getChatName(slug: string) {
     const supabase = createClient();
 
     const chat = await supabase
         .from("chats")
         .select("chat_name")
-        .eq("chat_id", resolvedParams.slug)
-        .single()
-        .then((res) => {
-            return res.data ? { name: res.data.chat_name } : null;
-        });
+        .eq("chat_id", slug)
+        .single();
+
+    return chat.data ? chat.data.chat_name : null;
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const resolvedParams = await params;
+
+    const chatName = await getChatName(resolvedParams.slug);
+    const chat = chatName ? { name: chatName } : null;
 
     return {
         title: chat ? chat.name : resolvedParams.slug
@@ -27,16 +32,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
     const resolvedParams = await params;
 
-    const supabase = createClient();
-
-    const chat = await supabase
-        .from("chats")
-        .select("chat_name")
-        .eq("chat_id", resolvedParams.slug)
-        .single()
-        .then((res) => {
-            return res.data ? { name: res.data.chat_name } : null;
-        });
+    const chatName = await getChatName(resolvedParams.slug);
+    const chat = chatName ? { name: chatName } : null;
 
 
 
