@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
-import ChatList from "@/components/layout/chat-list";
+import ChatsContent from "@/components/layout/chat-content";
 import UserInfo from "@/components/atom/user-info";
 
 import {
@@ -31,7 +31,7 @@ export default function AppSidebar() {
             <SidebarContent>
                 <SidebarGroup className="flex-1">
                     <SidebarGroupContent className="h-full">
-                        <ChatList />
+                        <ChatsContent />
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>

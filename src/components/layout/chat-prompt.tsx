@@ -32,6 +32,8 @@ export default function ChatPromptInput() {
 
         let chatId = slug ?? '/';
 
+        console.log(chatId)
+
         try {
 
             const response = await fetch("/api/index", {
