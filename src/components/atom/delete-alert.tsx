@@ -34,7 +34,8 @@ export default function DeleteAlert({ chatName, chatId }: { chatName?: string, c
             return;
         }
 
-        // Refresh the page to update the chat list
+        // redirect to home page after deletion
+        router.push('/')
         router.refresh();
     };
 

@@ -12,7 +12,6 @@ export default async function Home() {
 
     let isSignedIn = (await supabase.auth.getUser()).data.user !== null;
 
-
     return (
         <>
             {(isSignedIn) && <SidebarTrigger className=" ml-3 justify-start hover:cursor-pointer p-4 rounded-full" />}

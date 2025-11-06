@@ -46,10 +46,10 @@ export default function ChatLink(props: { chatId: string, name: string }) {
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <SidebarMenuAction
+                            className="data-[state=open]:opacity-100  hover:cursor-pointer"
                             showOnHover
-                            className="data-[state=open]:opacity-100"
                         >
-                            <Trash className="h-4 w-4 text-destructive" />
+                            <Trash className="h-4 w-4 text-destructive " />
                             <span className="sr-only">Delete chat</span>
                         </SidebarMenuAction>
                     </AlertDialogTrigger>

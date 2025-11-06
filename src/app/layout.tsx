@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, Plus_Jakarta_Sans } from "next/font/google"
 
 import "./globals.css";
 
@@ -9,8 +9,18 @@ import { ThemeProvider } from "@/context/theme-provider";
 
 import { createClient } from "@/util/supabase/server";
 
-const geistMono = Geist_Mono({
-    variable: "--font-geist-mono",
+const inter = Inter({
+    variable: "--font-inter",
+    subsets: ["latin"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+    variable: "--font-space-grotesk",
+    subsets: ["latin"],
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+    variable: "--font-plus-jakarta-sans",
     subsets: ["latin"],
 });
 
@@ -38,7 +48,7 @@ export default async function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <body
-                className={`${geistMono.className}  antialiased`}
+                className={`${inter.className} ${spaceGrotesk.className} ${plusJakartaSans.className} antialiased`}
             >
                 <ThemeProvider
                     attribute="class"

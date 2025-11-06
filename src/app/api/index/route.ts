@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { v4 } from "uuid";
+import { generateText } from "ai";
+import { google } from "@ai-sdk/google";
 
 import { createClient } from "@/util/supabase/server";
 import { revalidatePath } from "next/cache";
-
 
 export async function POST(req: Request) {
     const supabase = createClient();
@@ -17,17 +18,30 @@ export async function POST(req: Request) {
         });
     }
 
-    const { chatName } = await req.json();
+    // generate a chat name based on the prompt
+    const { prompt } = await req.json();
 
-    if (!chatName) {
+    let chatName;
+
+    try {
+        const aiResponse = await generateText({
+            model: google("gemini-2.5-flash-lite"),
+            system: "You are a helpful assistant that generates chat names.",
+            prompt:
+                `Generate a concise and descriptive chat name for the following prompt, in less than 5 words:\n\n"${prompt}"\n\nChat Name:`,
+        });
+
+        chatName = aiResponse.text ? aiResponse.text.trim() : "New Chat";
+    } catch (error) {
+        console.error("AI generation error:", error);
         return NextResponse.json({
-            message: "Chat name is required",
-            status: 400,
+            message: "Failed to generate chat name",
+            status: 500,
         });
     }
 
     const chatId = v4();
-    
+
     const { data: insertData, error: insertError } = await supabase
         .from("chats")
         .insert({ chat_id: chatId, chat_name: chatName });

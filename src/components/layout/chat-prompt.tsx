@@ -38,7 +38,7 @@ export default function ChatPromptInput() {
 
             const response = await fetch("/api/index", {
                 method: "POST",
-                body: JSON.stringify({ chatName: prompt }),
+                body: JSON.stringify({ prompt: prompt }),
                 headers: {
                     'Content-Type': 'application/json'
                 }
