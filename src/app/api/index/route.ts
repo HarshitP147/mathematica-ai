@@ -9,9 +9,9 @@ import { revalidatePath } from "next/cache";
 export async function POST(req: Request) {
     const supabase = createClient();
 
-    const { data, error } = await supabase.auth.getUser();
+    const { data: userData, error } = await supabase.auth.getUser();
 
-    if (error || !data.user) {
+    if (error || !userData.user) {
         return NextResponse.json({
             message: "Unauthorized",
             status: 401,
@@ -49,6 +49,17 @@ export async function POST(req: Request) {
     if (insertError) {
         return NextResponse.json({
             message: "Failed to create chat",
+            status: 500,
+        });
+    }
+
+    const { data: userChatData, error: userChatError } = await supabase
+        .from("user_chats")
+        .insert({ user_id: userData.user.id, chat_id: chatId });
+
+    if (userChatError) {
+        return NextResponse.json({
+            message: "Failed to associate user with chat",
             status: 500,
         });
     }

@@ -26,7 +26,7 @@ export default async function Home() {
                     <p className='text-lg text-foreground'>Your AI chat assistant.</p>
                     {isSignedIn ? (
                         <div className='mb-4 w-[200%]'>
-                            <ChatPromptInput  />
+                            <ChatPromptInput />
                         </div>
                     ) : (
                         <Button asChild>

@@ -7,6 +7,7 @@ import UserInfo from "@/components/atom/user-info";
 import {
     Sidebar,
     SidebarContent,
+    SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
     SidebarHeader,
@@ -18,8 +19,9 @@ export default function AppSidebar() {
     return (
         <Sidebar>
             <SidebarHeader className="border-b">
-                <UserInfo />
-                <SidebarMenuButton asChild size="lg" className="w-full hover:bg-primary active:bg-primary/80">
+                <Link href="/" className="text-lg font-bold  text-center py-4">Mathematica AI</Link>
+
+                <SidebarMenuButton asChild size="lg" className="w-full hover:bg-primary active:bg-primary/80 transition-colors">
                     <Link href="/">
                         <Plus className="h-5 w-5" />
                         <span>New Chat</span>
@@ -35,6 +37,11 @@ export default function AppSidebar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
+
+
+            <SidebarFooter className="border-t ">
+                <UserInfo />
+            </SidebarFooter>
 
         </Sidebar>
     );

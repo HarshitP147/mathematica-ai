@@ -14,7 +14,7 @@ import SubmitButton from "@/components/atom/submit-button"
 import { Button } from "@/components/ui/button"
 
 
-export default function ChatPromptInput({ onPromptSubmit }: { onPromptSubmit?: () => void }) {
+export default function ChatPromptInput() {
     const [prompt, setPrompt] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const { slug } = useParams();
@@ -28,8 +28,6 @@ export default function ChatPromptInput({ onPromptSubmit }: { onPromptSubmit?: (
         event?.preventDefault();
         setIsLoading(true);
 
-        onPromptSubmit!();
-
         let chatId = slug ?? '/';
 
         console.log(chatId)
@@ -38,36 +36,36 @@ export default function ChatPromptInput({ onPromptSubmit }: { onPromptSubmit?: (
         setIsLoading(false);
         setPrompt("");
 
-        // try {
+        try {
 
-        //     const response = await fetch("/api/index", {
-        //         method: "POST",
-        //         body: JSON.stringify({ prompt: prompt }),
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         }
-        //     });
+            const response = await fetch("/api/index", {
+                method: "POST",
+                body: JSON.stringify({ prompt: prompt }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-        //     if (!response.ok) {
-        //         throw new Error("Failed to create chat");
-        //     } 
+            if (!response.ok) {
+                throw new Error("Failed to create chat");
+            }
 
-        //     const data = await response.json();
-        //     console.log(data);
+            const data = await response.json();
+            console.log(data);
 
-        //     setPrompt("");
+            setPrompt("");
 
-        //     // Redirect to the new chat page
-        //     router.push(`/chat/${data.chatId}`);
+            // Redirect to the new chat page
+            router.push(`/chat/${data.chatId}`);
 
-        //     // Refresh to update the chat list in the sidebar
-        //     router.refresh();
-        // } catch (error) {
-        //     console.error(error);
-        // } finally {
-        //     setIsLoading(false);
-        // }
-
+            // Refresh to update the chat list in the sidebar
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    
 
         // // Handle the chat action (e.g., send the prompt to the backend)
         // const response = await fetch('/api/chat', {
@@ -142,7 +140,7 @@ export default function ChatPromptInput({ onPromptSubmit }: { onPromptSubmit?: (
                 className="text-foreground bg-transparent" />
             <PromptInputActions>
                 <PromptInputAction className="justify-end" tooltip={false}>
-                    <Button asChild onClick={onPromptSubmit}>
+                    <Button asChild >
                         <SubmitButton isLoading={isLoading} hasContent={prompt.trim().length !== 0} />
                     </Button>
                 </PromptInputAction>
