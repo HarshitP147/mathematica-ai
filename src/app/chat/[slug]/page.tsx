@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
-import ChatPromptInput from "@/components/layout/chat-prompt";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import ResponseExample from "@/components/atom/response-example";
+import ChatBody from "@/components/layout/chat-body";
 
 import { createClient } from "@/util/supabase/server";
 
@@ -46,13 +45,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                 </div>
             </header>
             {/* content area could render messages here */}
-            <ResponseExample />
-
-            <footer className="fixed bottom-0 left-0 right-0 px-4 py-4">
-                <div className="max-w-4xl mx-auto">
-                    <ChatPromptInput />
-                </div>
-            </footer>
+            <ChatBody />
         </div>
     )
 }   
