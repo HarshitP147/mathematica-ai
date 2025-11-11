@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
+import type { ModelMessage } from "ai"
 
 import ChatPromptInput from "@/components/layout/chat-prompt";
 import { ChatContainerContent, ChatContainerRoot } from "@/components/ui/chat-container";
@@ -21,13 +22,25 @@ export default function ChatBody() {
     const supabase = createClient();
 
 
-    async function handleSendPrompt(prompt: string) {
+    async function handleSendPrompt(prompt: string, skipUserMessage = false) {
         setIsLoading(true);
+        setResponseText(""); // Clear previous response
+
+        // Add user message to UI immediately (if not skipping)
+        if (!skipUserMessage) {
+            const tempUserMessage = {
+                message_id: `temp-${Date.now()}`,
+                content: prompt,
+                role: 'user',
+                created_at: new Date().toISOString()
+            };
+            setChatMessages(prev => [...prev, tempUserMessage]);
+        }
 
         // Handle the chat action (e.g., send the prompt to the backend)
         const response = await fetch('/api/chat', {
             method: 'POST',
-            body: JSON.stringify({ prompt }),
+            body: JSON.stringify({ messages: chatMessages, prompt: prompt, chatId: slug, skipUserMessage }),
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -44,7 +57,7 @@ export default function ChatBody() {
         if (!response.body) {
             // Fallback to read full text if stream is not available
             const text = await response.text();
-            console.log("Response text:", text);
+            // console.log("Response text:", text);
             setIsLoading(false);
             return;
         }
@@ -71,6 +84,21 @@ export default function ChatBody() {
                 // ignore release errors
             }
             setIsLoading(false);
+
+            // Refresh messages from database after streaming completes
+            // Wait a bit for the onFinish callback to complete in the API
+            setTimeout(async () => {
+                const { data, error } = await supabase
+                    .from("chat_msgs")
+                    .select('messages!inner(message_id, content, role, created_at)')
+                    .eq('chat_id', slug)
+                    .order('messages(created_at)', { ascending: true });
+
+                if (!error && data) {
+                    setChatMessages(data.map(item => item.messages).flat());
+                    setResponseText(""); // Clear streaming response after loading from DB
+                }
+            }, 1000);
         }
     }
 
@@ -101,79 +129,57 @@ export default function ChatBody() {
             // Remove the query parameter from URL
             router.replace(`/chat/${slug}`, { scroll: false });
 
-            // Send the initial prompt
-            handleSendPrompt(initialPrompt);
+            // Send the initial prompt but skip creating user message (already in DB from /api/index)
+            handleSendPrompt(decodeURIComponent(initialPrompt), true);
         }
     }, [searchParams, slug, router]);
 
     return (
         <>
-            <ChatContainerRoot >
+            <ChatContainerRoot className="mb-24" >
                 <ChatContainerContent className="space-y-6 p-6">
-                    {chatMessages.length === 0 ? (
+                    {chatMessages.length === 0 && !responseText ? (
                         <div className="flex items-center justify-center h-full text-muted-foreground">
                             <p>No messages yet. Start the conversation!</p>
                         </div>
                     ) : (
-                        chatMessages.map((msg, index) => (
-                            <div
-                                key={msg.message_id}
-                                className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-center"}`}
-                            >
-                                {msg.role === "user" ? (
-                                    <div className="group relative max-w-[75%] ml-auto">
-                                        <Message
-                                            role="user"
-                                            className="
-                                                animate-in fade-in-50 slide-in-from-bottom-2 duration-300
-                                                rounded-2xl px-4 py-3 shadow-sm
-                                                bg-primary text-primary-foreground rounded-br-sm
-                                            "
-                                        >
-                                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                                                {msg.content}
-                                            </div>
-                                        </Message>
-                                        <div className="text-xs text-muted-foreground mt-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity text-right">
-                                            {new Date(msg.created_at).toLocaleTimeString([], {
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
+                        <>
+                            {chatMessages.map((msg, index) => (
+                                <div
+                                    key={msg.message_id}
+                                    className={`flex w-full px-20 ${msg.role === "user" ? "justify-end" : "justify-center"}`}
+                                >
+                                    {msg.role === "user" ? (
+                                        <div className="group relative max-w-[75%] ml-auto">
+                                            <Message
+                                                role="user"
+                                                className="
+                                                    animate-in fade-in-50 slide-in-from-bottom-2 duration-300
+                                                    rounded-2xl px-4 py-3 shadow-sm
+                                                    bg-primary text-primary-foreground rounded-br-sm
+                                                "
+                                            >
+                                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                    {msg.content}
+                                                </div>
+                                            </Message>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="group relative w-full max-w-[75%]">
-                                        <Message
-                                            role="assistant"
-                                            className="
-                                                animate-in fade-in-50 slide-in-from-bottom-2 duration-300
-                                                rounded-2xl px-4 py-3 shadow-sm
-                                                bg-muted text-foreground rounded-bl-sm border border-border/50
-                                            "
-                                        >
-                                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                                                {msg.content}
-                                            </div>
-                                        </Message>
-                                        <div className="text-xs text-muted-foreground mt-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity text-left">
-                                            {new Date(msg.created_at).toLocaleTimeString([], {
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
+                                    ) : (
+                                        <div className="group relative w-full ">
+                                            {/* AI Response (streaming) - Only show when streaming and not in DB yet */}
+                                            <Response content={msg.content} isStreaming={true} />
                                         </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))
+                                    )}
+                                </div>
+                            ))}
+                            {responseText && <Response content={responseText} isStreaming={loading} />}
+                        </>
                     )}
-
-                    {/* AI Response (streaming) - Centered */}
-                    {responseText && <Response content={responseText} isStreaming={loading} />}
                 </ChatContainerContent>
                 {/* <ChatContainerScrollAnchor /> */}
             </ChatContainerRoot>
 
-            <footer className="sticky bottom-0 left-0 right-0 px-4 py-4 bg-transparent ">
+            <footer className="fixed  bottom-0 left-0 right-0 px-4 py-4 bg-transparent ">
                 <div className="max-w-4xl mx-auto">
                     <ChatPromptInput loading={loading} sendPrompt={handleSendPrompt} />
                 </div>

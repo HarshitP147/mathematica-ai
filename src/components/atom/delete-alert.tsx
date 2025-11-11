@@ -24,19 +24,27 @@ export default function DeleteAlert({ chatName, chatId }: { chatName?: string, c
     const handleDelete = async () => {
         if (!chatId) return;
 
-        const { error } = await supabase
-            .from("chats")
-            .delete()
-            .eq("chat_id", chatId);
+        try {
+            // Only delete from chats table - CASCADE will handle the rest:
+            // - user_chats entries (CASCADE from chats)
+            // - chat_msgs entries (CASCADE from chats)
+            // - Messages entries (CASCADE from chat_msgs)
+            const { error } = await supabase
+                .from("chats")
+                .delete()
+                .eq("chat_id", chatId);
 
-        if (error) {
-            console.error("Error deleting chat:", error);
-            return;
+            if (error) {
+                console.error("Error deleting chat:", error);
+                return;
+            }
+
+            // redirect to home page after deletion
+            router.push('/')
+            router.refresh();
+        } catch (err) {
+            console.error("Error deleting chat:", err);
         }
-
-        // redirect to home page after deletion
-        router.push('/')
-        router.refresh();
     };
 
     return (

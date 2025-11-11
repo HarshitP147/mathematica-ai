@@ -89,6 +89,20 @@ export async function POST(req: Request) {
             throw chatMsgError;
         }
 
+        // Associate the message with the user in user_msgs table
+        const { data: userMsgData, error: userMsgError } = await supabase
+            .from("user_msgs")
+            .insert({
+                user_id: userData.user.id,
+                message_id: messageId,
+                sender_type: "user",
+                model_name: null,
+            });
+
+        if (userMsgError) {
+            throw userMsgError;
+        }
+
         // Return the chat ID so client can redirect
         return NextResponse.json({
             message: "Chat created successfully",

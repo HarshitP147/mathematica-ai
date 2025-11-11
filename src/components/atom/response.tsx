@@ -30,21 +30,43 @@ type ParsedResponse = {
  * Parses the response format from test.txt:
  * <reasoning-start>...<reasoning-end><text-start>...<text-end>
  * 
- * Splits reasoning into logical sections based on double line breaks
+ * Handles both complete and streaming (partial) content
  */
 function parseResponse(content: string): ParsedResponse {
-    const reasoningMatch = content.match(/<reasoning-start>([\s\S]*?)<reasoning-end>/)
-    const textMatch = content.match(/<text-start>([\s\S]*?)<text-end>/)
+    // Check for reasoning section - handle both complete and streaming
+    let reasoning = ""
+    const reasoningStartIndex = content.indexOf("<reasoning-start>")
+    const reasoningEndIndex = content.indexOf("<reasoning-end>")
+    
+    if (reasoningStartIndex !== -1) {
+        const reasoningContent = reasoningEndIndex !== -1
+            ? content.substring(reasoningStartIndex + 17, reasoningEndIndex) // Complete reasoning
+            : content.substring(reasoningStartIndex + 17) // Streaming reasoning (no end tag yet)
+        reasoning = reasoningContent.trim()
+    }
+    
+    // Check for text section - handle both complete and streaming
+    let text = ""
+    const textStartIndex = content.indexOf("<text-start>")
+    const textEndIndex = content.indexOf("<text-end>")
+    
+    if (textStartIndex !== -1) {
+        const textContent = textEndIndex !== -1
+            ? content.substring(textStartIndex + 12, textEndIndex) // Complete text
+            : content.substring(textStartIndex + 12) // Streaming text (no end tag yet)
+        text = textContent.trim()
+    }
 
     return {
-        reasoning: reasoningMatch ? reasoningMatch[1].trim() : "",
-        text: textMatch ? textMatch[1].trim() : ""
+        reasoning,
+        text
     }
 }
 
 /**
  * Splits reasoning text into steps based on bold headers (markdown **Title**)
  * Each step contains a title and its associated content
+ * Handles streaming content - can process incomplete steps
  */
 function splitReasoningSteps(reasoning: string): Array<{ title: string; content: string }> {
     if (!reasoning) return []
@@ -76,7 +98,7 @@ function splitReasoningSteps(reasoning: string): Array<{ title: string; content:
         }
     }
     
-    // Don't forget the last step
+    // Don't forget the last step (even if incomplete during streaming)
     if (currentTitle) {
         steps.push({
             title: currentTitle,
@@ -105,58 +127,66 @@ export default function Response({ content, isStreaming = false, className }: Re
     }
 
     return (
-        <div className="flex w-full justify-center">
-            <div className="w-full max-w-[75%]">
-                <Message role="assistant" className={className}>
-                    <div className="flex flex-col gap-3 w-full">
-                        {/* Reasoning Dropdown with Chain of Thought Steps Inside */}
-                        {hasReasoning && reasoningSteps.length > 0 && (
-                            <Reasoning isStreaming={isStreaming && !hasText}>
-                                <ReasoningTrigger className="text-sm font-medium">
-                                    💭 View Thinking Process ({reasoningSteps.length} steps)
-                                </ReasoningTrigger>
-                                <ReasoningContent className="mt-3">
-                                    <ChainOfThought>
-                                        {reasoningSteps.map((step, index) => (
-                                            <ChainOfThoughtStep
-                                                key={index}
-                                                defaultOpen={isStreaming && index === reasoningSteps.length - 1}
-                                            >
-                                                <ChainOfThoughtTrigger
-                                                    leftIcon={<BrainCircuit className="h-4 w-4" />}
-                                                    swapIconOnHover
+        <div className="flex w-full justify-start">
+            <div className="w-full max-w-full">
+                <div className="group relative">
+                    <Message 
+                        role="assistant" 
+                        className="rounded-xl px-4 py-3"
+                    >
+                        <div className="flex flex-col gap-3 w-full">
+                            {/* Reasoning Section */}
+                            {hasReasoning && reasoningSteps.length > 0 && (
+                                <Reasoning isStreaming={isStreaming && !hasText}>
+                                    <ReasoningTrigger className="text-sm font-medium flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                                        {/* <BrainCircuit className="h-4 w-4" /> */}
+                                        <span>View thinking process</span>
+                                    </ReasoningTrigger>
+                                    <ReasoningContent className="mt-2">
+                                        <ChainOfThought>
+                                            {reasoningSteps.map((step, index) => (
+                                                <ChainOfThoughtStep
+                                                    key={index}
+                                                    defaultOpen={isStreaming && index === reasoningSteps.length - 1}
                                                 >
-                                                    {step.title}
-                                                </ChainOfThoughtTrigger>
-                                                <ChainOfThoughtContent>
-                                                    <ChainOfThoughtItem>
-                                                        {step.content}
-                                                    </ChainOfThoughtItem>
-                                                </ChainOfThoughtContent>
-                                            </ChainOfThoughtStep>
-                                        ))}
-                                    </ChainOfThought>
-                                </ReasoningContent>
-                            </Reasoning>
-                        )}
+                                                    <ChainOfThoughtTrigger
+                                                        swapIconOnHover
+                                                    >
+                                                        {step.title}
+                                                    </ChainOfThoughtTrigger>
+                                                    <ChainOfThoughtContent>
+                                                        <ChainOfThoughtItem>
+                                                            {step.content}
+                                                        </ChainOfThoughtItem>
+                                                    </ChainOfThoughtContent>
+                                                </ChainOfThoughtStep>
+                                            ))}
+                                        </ChainOfThought>
+                                    </ReasoningContent>
+                                </Reasoning>
+                            )}
 
-                        {/* Main Text Response */}
-                        {hasText && (
-                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                                <Markdown>
-                                    {parsed.text}
-                                </Markdown>
-                            </div>
-                        )}
+                            {/* Main Text Response */}
+                            {hasText && (
+                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                    <Markdown>
+                                        {parsed.text}
+                                    </Markdown>
+                                </div>
+                            )}
 
-                        {/* Streaming indicator when no content yet */}
-                        {isStreaming && !hasReasoning && !hasText && (
-                            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                                <div className="animate-pulse">Thinking...</div>
-                            </div>
-                        )}
-                    </div>
-                </Message>
+                            {/* Streaming indicator */}
+                            {isStreaming && !hasReasoning && !hasText && (
+                                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse [animation-delay:0.2s]" />
+                                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse [animation-delay:0.4s]" />
+                                    <span className="ml-2">Thinking...</span>
+                                </div>
+                            )}
+                        </div>
+                    </Message>
+                </div>
             </div>
         </div>
     )

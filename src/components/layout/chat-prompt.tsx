@@ -54,7 +54,8 @@ export default function ChatPromptInput(props: Props) {
                 const currentPrompt = prompt;
                 setPrompt("");
 
-                // Redirect to the new chat page with the initial prompt
+                // Redirect to the new chat page - the message is already in DB
+                // Pass initialPrompt only to trigger AI response, not to create duplicate
                 router.push(`/chat/${data.chatId}?initialPrompt=${encodeURIComponent(currentPrompt)}`);
 
                 // Refresh to update the chat list in the sidebar
