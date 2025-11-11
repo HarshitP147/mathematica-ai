@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { v4 } from "uuid";
 import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 import { createClient } from "@/util/supabase/server";
 import { revalidatePath } from "next/cache";
@@ -40,37 +41,73 @@ export async function POST(req: Request) {
         });
     }
 
-    const chatId = v4();
+    try {
+        const chatId = v4();
 
-    const { data: insertData, error: insertError } = await supabase
-        .from("chats")
-        .insert({ chat_id: chatId, chat_name: chatName });
+        const { data: insertData, error: insertError } = await supabase
+            .from("chats")
+            .insert({ chat_id: chatId, chat_name: chatName });
 
-    if (insertError) {
+        if (insertError) {
+            throw insertError;
+        }
+
+        const { data: userChatData, error: userChatError } = await supabase
+            .from("user_chats")
+            .insert({ user_id: userData.user.id, chat_id: chatId });
+
+        if (userChatError) {
+            throw userChatError;
+        }
+
+        // Revalidate the home page to update the chat list
+        revalidatePath("/");
+
+        const messageId = v4();
+
+        // add the prompt as the first message in the chat
+        const { data: messageData, error: messageError } = await supabase
+            .from("messages")
+            .insert({
+                message_id: messageId,
+                content: prompt,
+                role: "user",
+            });
+
+        if (messageError) {
+            throw messageError;
+        }
+
+        const { data: chatMsgData, error: chatMsgError } = await supabase
+            .from("chat_msgs")
+            .insert({
+                chat_id: chatId,
+                msg_id: messageId,
+            });
+
+        if (chatMsgError) {
+            throw chatMsgError;
+        }
+
+        // Return the chat ID so client can redirect
         return NextResponse.json({
-            message: "Failed to create chat",
+            message: "Chat created successfully",
+            chatId: chatId,
+            status: 201,
+        });
+        
+    } catch (err: unknown) {
+        let message = "Internal Server Error";
+
+        if (err instanceof Error) {
+            message = err.message;
+        } else if (typeof err === "object" && err !== null && "message" in err && typeof (err as any).message === "string") {
+            message = (err as any).message;
+        }
+
+        return NextResponse.json({
+            message,
             status: 500,
         });
     }
-
-    const { data: userChatData, error: userChatError } = await supabase
-        .from("user_chats")
-        .insert({ user_id: userData.user.id, chat_id: chatId });
-
-    if (userChatError) {
-        return NextResponse.json({
-            message: "Failed to associate user with chat",
-            status: 500,
-        });
-    }
-
-    // Revalidate the home page to update the chat list
-    revalidatePath("/");
-
-    // Return the chat ID so client can redirect
-    return NextResponse.json({
-        message: "Chat created successfully",
-        chatId: chatId,
-        status: 201,
-    });
 }

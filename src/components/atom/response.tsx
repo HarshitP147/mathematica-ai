@@ -3,7 +3,7 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { Message, MessageAvatar, MessageContent } from "@/components/ui/message"
+import { Message } from "@/components/ui/message"
 import {
     ChainOfThought,
     ChainOfThoughtStep,
@@ -100,64 +100,64 @@ export default function Response({ content, isStreaming = false, className }: Re
     const hasReasoning = parsed.reasoning.length > 0
     const hasText = parsed.text.length > 0
 
+    if (!hasReasoning && !hasText && !isStreaming) {
+        return null
+    }
+
     return (
-        <Message className={className}>
-            <MessageAvatar
-                src="/bot-avatar.png"
-                alt="AI Assistant"
-                fallback="AI"
-            />
+        <div className="flex w-full justify-center">
+            <div className="w-full max-w-[75%]">
+                <Message role="assistant" className={className}>
+                    <div className="flex flex-col gap-3 w-full">
+                        {/* Reasoning Dropdown with Chain of Thought Steps Inside */}
+                        {hasReasoning && reasoningSteps.length > 0 && (
+                            <Reasoning isStreaming={isStreaming && !hasText}>
+                                <ReasoningTrigger className="text-sm font-medium">
+                                    💭 View Thinking Process ({reasoningSteps.length} steps)
+                                </ReasoningTrigger>
+                                <ReasoningContent className="mt-3">
+                                    <ChainOfThought>
+                                        {reasoningSteps.map((step, index) => (
+                                            <ChainOfThoughtStep
+                                                key={index}
+                                                defaultOpen={isStreaming && index === reasoningSteps.length - 1}
+                                            >
+                                                <ChainOfThoughtTrigger
+                                                    leftIcon={<BrainCircuit className="h-4 w-4" />}
+                                                    swapIconOnHover
+                                                >
+                                                    {step.title}
+                                                </ChainOfThoughtTrigger>
+                                                <ChainOfThoughtContent>
+                                                    <ChainOfThoughtItem>
+                                                        {step.content}
+                                                    </ChainOfThoughtItem>
+                                                </ChainOfThoughtContent>
+                                            </ChainOfThoughtStep>
+                                        ))}
+                                    </ChainOfThought>
+                                </ReasoningContent>
+                            </Reasoning>
+                        )}
 
-            <div className="flex flex-col gap-3 w-full">
-                {/* Reasoning Dropdown with Chain of Thought Steps Inside */}
-                {hasReasoning && reasoningSteps.length > 0 && (
-                    <Reasoning isStreaming={isStreaming && !hasText}>
-                        <ReasoningTrigger className="text-sm font-medium">
-                            💭 View Thinking Process ({reasoningSteps.length} steps)
-                        </ReasoningTrigger>
-                        <ReasoningContent className="mt-3">
-                            <ChainOfThought>
-                                {reasoningSteps.map((step, index) => (
-                                    <ChainOfThoughtStep
-                                        key={index}
-                                        defaultOpen={isStreaming && index === reasoningSteps.length - 1}
-                                    >
-                                        <ChainOfThoughtTrigger
-                                            leftIcon={<BrainCircuit className="h-4 w-4" />}
-                                            swapIconOnHover
-                                        >
-                                            {step.title}
-                                        </ChainOfThoughtTrigger>
-                                        <ChainOfThoughtContent>
-                                            <ChainOfThoughtItem>
-                                                {step.content}
-                                            </ChainOfThoughtItem>
-                                        </ChainOfThoughtContent>
-                                    </ChainOfThoughtStep>
-                                ))}
-                            </ChainOfThought>
-                        </ReasoningContent>
-                    </Reasoning>
-                )}
+                        {/* Main Text Response */}
+                        {hasText && (
+                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <Markdown>
+                                    {parsed.text}
+                                </Markdown>
+                            </div>
+                        )}
 
-                {/* Main Text Response */}
-                {hasText && (
-                    <>
-                        {/* <MessageContent markdown>
-                        </MessageContent> */}
-                        <Markdown>
-                            {parsed.text}
-                        </Markdown>
-                    </>
-                )}
-
-                {/* Streaming indicator when no content yet */}
-                {isStreaming && !hasReasoning && !hasText && (
-                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                        <div className="animate-pulse">Thinking...</div>
+                        {/* Streaming indicator when no content yet */}
+                        {isStreaming && !hasReasoning && !hasText && (
+                            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                                <div className="animate-pulse">Thinking...</div>
+                            </div>
+                        )}
                     </div>
-                )}
+                </Message>
             </div>
-        </Message>
+        </div>
     )
 }

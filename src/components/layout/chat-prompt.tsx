@@ -50,12 +50,12 @@ export default function ChatPromptInput(props: Props) {
                 }
 
                 const data = await response.json();
-                console.log(data);
 
+                const currentPrompt = prompt;
                 setPrompt("");
 
-                // Redirect to the new chat page
-                router.push(`/chat/${data.chatId}`);
+                // Redirect to the new chat page with the initial prompt
+                router.push(`/chat/${data.chatId}?initialPrompt=${encodeURIComponent(currentPrompt)}`);
 
                 // Refresh to update the chat list in the sidebar
                 router.refresh();

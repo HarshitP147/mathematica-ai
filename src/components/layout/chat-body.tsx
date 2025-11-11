@@ -1,12 +1,25 @@
 'use client'
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 
-import ResponseExample from "@/components/atom/response-example";
-import { ChatContainerContent, ChatContainerRoot } from "@/components/ui/chat-container";
 import ChatPromptInput from "@/components/layout/chat-prompt";
+import { ChatContainerContent, ChatContainerRoot } from "@/components/ui/chat-container";
+import { Message } from "@/components/ui/message";
+import Response from "@/components/atom/response";
+
+import { createClient } from "@/util/supabase/client";
 
 export default function ChatBody() {
     const [loading, setIsLoading] = useState(false);
+    const [chatMessages, setChatMessages] = useState<Array<{ message_id: string; content: string; role: string; created_at: string }>>([]);
+    const [responseText, setResponseText] = useState("");
+    const initialPromptSent = useRef(false);
+
+    const { slug } = useParams();
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const supabase = createClient();
+
 
     async function handleSendPrompt(prompt: string) {
         setIsLoading(true);
@@ -45,7 +58,9 @@ export default function ChatBody() {
                 if (done) break;
                 if (value) {
                     // value is a Uint8Array
-                    console.log(decoder.decode(value, { stream: true }));
+                    const chunk = decoder.decode(value, { stream: true });
+                    console.log(chunk);
+                    setResponseText(prev => prev + chunk);
                 }
             }
         } finally {
@@ -60,21 +75,112 @@ export default function ChatBody() {
     }
 
 
+    // Fetch existing messages
+    useEffect(() => {
+        if (!slug) return;
+
+        supabase.from("chat_msgs")
+            .select('messages! inner (message_id, content, role, created_at)')
+            .eq('chat_id', slug)
+            .then(({ data, error }) => {
+                if (error) {
+                    console.error("Error fetching chat messages:", error);
+                } else {
+                    setChatMessages(data?.map(item => item.messages).flat() || []);
+                }
+            });
+    }, [slug, supabase]);
+
+    // Handle initial prompt from URL
+    useEffect(() => {
+        const initialPrompt = searchParams.get('initialPrompt');
+
+        if (initialPrompt && !initialPromptSent.current && slug) {
+            initialPromptSent.current = true;
+
+            // Remove the query parameter from URL
+            router.replace(`/chat/${slug}`, { scroll: false });
+
+            // Send the initial prompt
+            handleSendPrompt(initialPrompt);
+        }
+    }, [searchParams, slug, router]);
 
     return (
         <>
+            <ChatContainerRoot >
+                <ChatContainerContent className="space-y-6 p-6">
+                    {chatMessages.length === 0 ? (
+                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                            <p>No messages yet. Start the conversation!</p>
+                        </div>
+                    ) : (
+                        chatMessages.map((msg, index) => (
+                            <div
+                                key={msg.message_id}
+                                className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-center"}`}
+                            >
+                                {msg.role === "user" ? (
+                                    <div className="group relative max-w-[75%] ml-auto">
+                                        <Message
+                                            role="user"
+                                            className="
+                                                animate-in fade-in-50 slide-in-from-bottom-2 duration-300
+                                                rounded-2xl px-4 py-3 shadow-sm
+                                                bg-primary text-primary-foreground rounded-br-sm
+                                            "
+                                        >
+                                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                {msg.content}
+                                            </div>
+                                        </Message>
+                                        <div className="text-xs text-muted-foreground mt-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity text-right">
+                                            {new Date(msg.created_at).toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="group relative w-full max-w-[75%]">
+                                        <Message
+                                            role="assistant"
+                                            className="
+                                                animate-in fade-in-50 slide-in-from-bottom-2 duration-300
+                                                rounded-2xl px-4 py-3 shadow-sm
+                                                bg-muted text-foreground rounded-bl-sm border border-border/50
+                                            "
+                                        >
+                                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                {msg.content}
+                                            </div>
+                                        </Message>
+                                        <div className="text-xs text-muted-foreground mt-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity text-left">
+                                            {new Date(msg.created_at).toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
 
-            <ChatContainerRoot>
-                <ChatContainerContent>
-                    <ResponseExample />
+                    {/* AI Response (streaming) - Centered */}
+                    {responseText && <Response content={responseText} isStreaming={loading} />}
                 </ChatContainerContent>
+                {/* <ChatContainerScrollAnchor /> */}
             </ChatContainerRoot>
 
-            <footer className="fixed bottom-0 left-0 right-0 px-4 py-4">
+            <footer className="sticky bottom-0 left-0 right-0 px-4 py-4 bg-transparent ">
                 <div className="max-w-4xl mx-auto">
                     <ChatPromptInput loading={loading} sendPrompt={handleSendPrompt} />
                 </div>
             </footer>
+
+
+
         </>
     );
 }

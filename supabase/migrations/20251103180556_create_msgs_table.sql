@@ -8,4 +8,3 @@ CREATE TABLE Messages (
 );
 
 ALTER TABLE Messages ADD CONSTRAINT msgs_pkey PRIMARY KEY (message_id);
-
