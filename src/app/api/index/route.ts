@@ -72,22 +72,13 @@ export async function POST(req: Request) {
                 message_id: messageId,
                 content: prompt,
                 role: "user",
+                chat_id: chatId,
             });
 
         if (messageError) {
             throw messageError;
         }
 
-        const { data: chatMsgData, error: chatMsgError } = await supabase
-            .from("chat_msgs")
-            .insert({
-                chat_id: chatId,
-                msg_id: messageId,
-            });
-
-        if (chatMsgError) {
-            throw chatMsgError;
-        }
 
         // Associate the message with the user in user_msgs table
         const { data: userMsgData, error: userMsgError } = await supabase

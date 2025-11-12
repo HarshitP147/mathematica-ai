@@ -39,6 +39,7 @@ export async function POST(req: Request) {
                 message_id: messageId,
                 content: prompt,
                 role: "user",
+                chat_id: chatId,
             });
 
             if (msgError) {
@@ -48,23 +49,6 @@ export async function POST(req: Request) {
                 });
             }
 
-            // associate message with the chat
-            const { data: chatMsgData, error: chatMsgError } = await supabase
-                .from("chat_msgs")
-                .insert({
-                    chat_id: chatId,
-                    msg_id: messageId,
-                });
-
-            if (chatMsgError) {
-                console.error(
-                    "Error associating message with chat:",
-                    chatMsgError,
-                );
-                return new Response("Failed to associate message with chat", {
-                    status: 500,
-                });
-            }
 
             // lastly, associate with the user
             const { data: userMsgData, error: userMsgError } = await supabase
@@ -122,22 +106,11 @@ export async function POST(req: Request) {
                         message_id: aiMessageId,
                         content: content,
                         role: "assistant",
+                        chat_id: chatId,
                     });
 
                 if (aiMsgError) {
                     throw aiMsgError;
-                }
-                // associate AI message with the chat
-                const { data: aiChatMsgData, error: aiChatMsgError } =
-                    await supabase
-                        .from("chat_msgs")
-                        .insert({
-                            chat_id: chatId,
-                            msg_id: aiMessageId,
-                        });
-
-                if (aiChatMsgError) {
-                    throw aiChatMsgError;
                 }
 
                 // Associate AI message with model in user_msgs table

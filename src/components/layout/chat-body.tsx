@@ -89,13 +89,13 @@ export default function ChatBody() {
             // Wait a bit for the onFinish callback to complete in the API
             setTimeout(async () => {
                 const { data, error } = await supabase
-                    .from("chat_msgs")
-                    .select('messages!inner(message_id, content, role, created_at)')
+                    .from("messages")
+                    .select('message_id, content, role, created_at')
                     .eq('chat_id', slug)
                     .order('messages(created_at)', { ascending: true });
 
                 if (!error && data) {
-                    setChatMessages(data.map(item => item.messages).flat());
+                    setChatMessages(data.map(item => item).flat());
                     setResponseText(""); // Clear streaming response after loading from DB
                 }
             }, 1000);
@@ -107,14 +107,14 @@ export default function ChatBody() {
     useEffect(() => {
         if (!slug) return;
 
-        supabase.from("chat_msgs")
-            .select('messages! inner (message_id, content, role, created_at)')
+        supabase.from("messages")
+            .select('message_id, content, role, created_at')
             .eq('chat_id', slug)
             .then(({ data, error }) => {
                 if (error) {
                     console.error("Error fetching chat messages:", error);
                 } else {
-                    setChatMessages(data?.map(item => item.messages).flat() || []);
+                    setChatMessages(data || []);
                 }
             });
     }, [slug, supabase]);
