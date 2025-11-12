@@ -3,7 +3,6 @@
 import type { KeyboardEvent } from "react"
 import { useState } from "react"
 import { useParams, useRouter, } from "next/navigation"
-import { motion } from "motion/react"
 
 import {
     PromptInput,
@@ -11,6 +10,7 @@ import {
     PromptInputActions,
     PromptInputAction
 } from "@/components/ui/prompt-input"
+import IncludeThinking from "@/components/atom/include-thinking"
 import SubmitButton from "@/components/atom/submit-button"
 import { Button } from "@/components/ui/button"
 import { Paperclip } from "lucide-react"
@@ -24,6 +24,7 @@ type Props = {
 export default function ChatPromptInput(props: Props) {
     const [prompt, setPrompt] = useState("");
     const [isLoading, setIsLoading] = useState(props.loading || false);
+    const [includeThinking, setIncludeThinking] = useState(false);
     const { slug } = useParams();
     const router = useRouter();
 
@@ -107,11 +108,21 @@ export default function ChatPromptInput(props: Props) {
 
             <PromptInputActions className="w-full items-center justify-between ">
 
-                <PromptInputAction tooltip={"Attach files"} >
-                    <Button variant={"outline"} className="rounded-full p-2">
-                        <Paperclip className="text-foreground  " />
-                    </Button>
-                </PromptInputAction>
+                <div className="space-x-2">
+
+                    <PromptInputAction tooltip={"Attach files"} >
+                        <Button variant={"outline"} className="rounded-full p-2">
+                            <Paperclip className="text-foreground  " />
+                        </Button>
+                    </PromptInputAction>
+
+                    <PromptInputAction tooltip={"Toggle Thinking"} >
+                        <Button variant={"ghost"} className="rounded-full p-2" onClick={() => setIncludeThinking(!includeThinking)}>
+                            <IncludeThinking includeThinking={includeThinking} />
+                        </Button>
+                    </PromptInputAction>
+                </div>
+
 
 
                 <PromptInputAction className="justify-end" tooltip={false}>
