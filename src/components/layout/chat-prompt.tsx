@@ -3,6 +3,7 @@
 import type { KeyboardEvent } from "react"
 import { useState } from "react"
 import { useParams, useRouter, } from "next/navigation"
+import { motion } from "motion/react"
 
 import {
     PromptInput,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/prompt-input"
 import SubmitButton from "@/components/atom/submit-button"
 import { Button } from "@/components/ui/button"
+import { Paperclip } from "lucide-react"
 
 type Props = {
     loading?: boolean,
@@ -89,27 +91,40 @@ export default function ChatPromptInput(props: Props) {
 
     return (
         <PromptInput
-            className="w-full flex bg-transparent backdrop-blur-lg dark:backdrop-blur-3xl"
+            className="w-full  bg-transparent backdrop-blur-lg dark:backdrop-blur-3xl  "
             value={prompt}
             onSubmit={undefined}  // Disable built-in Enter submit
             isLoading={isLoading}
             onValueChange={handleValueChange}
         >
+
+
             <PromptInputTextarea
                 placeholder="Ask me anything..."
                 onKeyDown={handleKeyDown}
-                className="text-foreground bg-transparent" />
-            <PromptInputActions>
+                className="text-foreground bg-transparent " />
+
+
+            <PromptInputActions className="w-full items-center justify-between ">
+
+                <PromptInputAction tooltip={"Attach files"} >
+                    <Button variant={"outline"} className="rounded-full p-2">
+                        <Paperclip className="text-foreground  " />
+                    </Button>
+                </PromptInputAction>
+
+
                 <PromptInputAction className="justify-end" tooltip={false}>
                     <Button asChild>
-                        <SubmitButton 
-                            onClick={handleSubmit} 
-                            isLoading={isLoading} 
-                            hasContent={prompt.trim().length !== 0} 
+                        <SubmitButton
+                            onClick={handleSubmit}
+                            isLoading={isLoading}
+                            hasContent={prompt.trim().length !== 0}
                         />
                     </Button>
                 </PromptInputAction>
             </PromptInputActions>
+
         </PromptInput>
     )
 }
