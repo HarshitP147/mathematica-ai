@@ -1,4 +1,4 @@
-import { convertToModelMessages, generateText, streamText } from "ai";
+import { streamText } from "ai";
 import { google, GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { createClient } from "@/util/supabase/server";
 import { v4 } from "uuid";
@@ -10,7 +10,13 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-    const { messages, prompt, chatId, skipUserMessage = false } = await req
+    const {
+        messages,
+        includeThinking,
+        prompt,
+        chatId,
+        skipUserMessage = false,
+    } = await req
         .json();
 
     // append the prompt to messages array
@@ -49,7 +55,6 @@ export async function POST(req: Request) {
                 });
             }
 
-
             // lastly, associate with the user
             const { data: userMsgData, error: userMsgError } = await supabase
                 .from("user_msgs")
@@ -75,7 +80,6 @@ export async function POST(req: Request) {
         }
     }
 
-
     // now generate the AI response as a stream
     const result = streamText({ // model: google("gemini-2.5-pro"),
         model: google("gemini-2.5-pro"),
@@ -84,10 +88,15 @@ export async function POST(req: Request) {
         providerOptions: {
             google: {
                 thinkingConfig: {
-                    includeThoughts: true,
-                    thinkingBudget: 8192,
+                    includeThoughts: includeThinking,
+                    thinkingBudget: 16284,
                 },
             } satisfies GoogleGenerativeAIProviderOptions,
+        },
+        onChunk: ({ chunk }) => {
+            if (chunk.type === "source") {
+                console.log(chunk);
+            }
         },
         onFinish: async ({ text, reasoningText }) => {
             // store the AI response in the database
@@ -127,7 +136,6 @@ export async function POST(req: Request) {
                 if (aiUserMsgError) {
                     throw aiUserMsgError;
                 }
-
             } catch (err) {
                 console.error("Error saving AI message to database:", err);
             }

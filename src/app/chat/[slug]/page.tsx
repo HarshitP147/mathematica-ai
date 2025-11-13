@@ -35,7 +35,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     const chat = chatName ? { name: chatName } : null;
 
     return (
-        <div className="min-h-screen min-w-full relative overflow-auto">
+        <div className="min-h-screen min-w-full relative overflow-hidden flex flex-col">
 
             <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm flex items-center py-3 gap-x-3 px-4">
                 <SidebarTrigger className="hover:cursor-pointer p-2 rounded-lg hover:bg-accent" />

@@ -1,10 +1,10 @@
 'use client'
 import { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import type { ModelMessage } from "ai"
 
 import ChatPromptInput from "@/components/layout/chat-prompt";
-import { ChatContainerContent, ChatContainerRoot } from "@/components/ui/chat-container";
+import { ChatContainerRoot, ChatContainerContent, ChatContainerScrollAnchor } from "@/components/ui/chat-container";
+import { ScrollButton } from "@/components/ui/scroll-button";
 import { Message } from "@/components/ui/message";
 import Response from "@/components/atom/response";
 
@@ -15,14 +15,14 @@ export default function ChatBody() {
     const [chatMessages, setChatMessages] = useState<Array<{ message_id: string; content: string; role: string; created_at: string }>>([]);
     const [responseText, setResponseText] = useState("");
     const initialPromptSent = useRef(false);
-
+    
     const { slug } = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
     const supabase = createClient();
 
 
-    async function handleSendPrompt(prompt: string, skipUserMessage = false) {
+    async function handleSendPrompt(prompt: string, includeThinking: boolean, skipUserMessage = false) {
         setIsLoading(true);
         setResponseText(""); // Clear previous response
 
@@ -40,7 +40,7 @@ export default function ChatBody() {
         // Handle the chat action (e.g., send the prompt to the backend)
         const response = await fetch('/api/chat', {
             method: 'POST',
-            body: JSON.stringify({ messages: chatMessages, prompt: prompt, chatId: slug, skipUserMessage }),
+            body: JSON.stringify({ messages: chatMessages, includeThinking: includeThinking, prompt: prompt, chatId: slug, skipUserMessage }),
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -94,6 +94,9 @@ export default function ChatBody() {
                     .eq('chat_id', slug)
                     .order('messages(created_at)', { ascending: true });
 
+                // router.replace(`/chat/${slug}`, { scroll: true });
+
+
                 if (!error && data) {
                     setChatMessages(data.map(item => item).flat());
                     setResponseText(""); // Clear streaming response after loading from DB
@@ -117,7 +120,7 @@ export default function ChatBody() {
                     setChatMessages(data || []);
                 }
             });
-    }, [slug, supabase]);
+    }, [slug,supabase]);
 
     // Handle initial prompt from URL
     useEffect(() => {
@@ -136,8 +139,9 @@ export default function ChatBody() {
 
     return (
         <>
-            <ChatContainerRoot className="mb-24" >
-                <ChatContainerContent className="space-y-6 p-6">
+            <ChatContainerRoot className="h-full  ">
+
+                <ChatContainerContent className="space-y-6 p-6 mb-36">
                     {chatMessages.length === 0 && !responseText ? (
                         <div className="flex items-center justify-center h-full text-muted-foreground">
                             <p>No messages yet. Start the conversation!</p>
@@ -154,10 +158,10 @@ export default function ChatBody() {
                                             <Message
                                                 role="user"
                                                 className="
-                                                    animate-in fade-in-50 slide-in-from-bottom-2 duration-300
-                                                    rounded-2xl px-4 py-3 shadow-sm
-                                                    bg-primary text-primary-foreground rounded-br-sm
-                                                "
+                                            animate-in fade-in-50 slide-in-from-bottom-2 duration-300
+                                            rounded-2xl px-4 py-3 shadow-sm
+                                            bg-primary text-primary-foreground rounded-br-sm
+                                            "
                                             >
                                                 <div className="prose prose-sm dark:prose-invert max-w-none">
                                                     {msg.content}
@@ -176,17 +180,15 @@ export default function ChatBody() {
                         </>
                     )}
                 </ChatContainerContent>
-                {/* <ChatContainerScrollAnchor /> */}
-            </ChatContainerRoot>
 
-            <footer className="fixed  bottom-0 left-0 right-0 px-4 py-4 bg-transparent ">
-                <div className="max-w-4xl mx-auto">
-                    <ChatPromptInput loading={loading} sendPrompt={handleSendPrompt} />
-                </div>
-            </footer>
-
-
-
+                <footer className="fixed bottom-0 left-0 right-0 px-4 py-4 bg-transparent">
+                    <div className="max-w-4xl mx-auto relative">
+                        <ScrollButton variant={"default"} className="absolute -top-16 left-1/2 -translate-x-1/2 z-30" />
+                        <ChatPromptInput loading={loading} sendPrompt={handleSendPrompt} />
+                    </div>
+                </footer>
+            </ChatContainerRoot >
         </>
+
     );
 }

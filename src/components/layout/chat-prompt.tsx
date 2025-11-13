@@ -1,7 +1,7 @@
 'use client'
 
 import type { KeyboardEvent } from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams, useRouter, } from "next/navigation"
 
 import {
@@ -17,7 +17,7 @@ import { Paperclip } from "lucide-react"
 
 type Props = {
     loading?: boolean,
-    sendPrompt?: (prompt: string) => Promise<void>
+    sendPrompt?: (prompt: string, includeThinking: boolean) => Promise<void>
 }
 
 
@@ -72,7 +72,7 @@ export default function ChatPromptInput(props: Props) {
 
         else {
             try {
-                await props.sendPrompt!(prompt);
+                await props.sendPrompt!(prompt, includeThinking);
                 setPrompt("");
             } catch (error) {
                 console.error(error);
@@ -92,7 +92,7 @@ export default function ChatPromptInput(props: Props) {
 
     return (
         <PromptInput
-            className="w-full  bg-transparent backdrop-blur-lg dark:backdrop-blur-3xl  "
+            className="w-full bg-transparent backdrop-blur-lg dark:backdrop-blur-3xl  "
             value={prompt}
             onSubmit={undefined}  // Disable built-in Enter submit
             isLoading={isLoading}
@@ -103,7 +103,7 @@ export default function ChatPromptInput(props: Props) {
             <PromptInputTextarea
                 placeholder="Ask me anything..."
                 onKeyDown={handleKeyDown}
-                className="text-foreground bg-transparent " />
+                className="text-foreground dark:bg-transparent dark:backdrop-blur-3xl" />
 
 
             <PromptInputActions className="w-full items-center justify-between ">
@@ -117,7 +117,7 @@ export default function ChatPromptInput(props: Props) {
                     </PromptInputAction>
 
                     <PromptInputAction tooltip={"Toggle Thinking"} >
-                        <Button variant={"ghost"} className="rounded-full p-2" onClick={() => setIncludeThinking(!includeThinking)}>
+                        <Button variant={includeThinking ? "default" : "outline"} className="rounded-full p-2.5" onClick={() => setIncludeThinking(!includeThinking)}>
                             <IncludeThinking includeThinking={includeThinking} />
                         </Button>
                     </PromptInputAction>
@@ -126,13 +126,13 @@ export default function ChatPromptInput(props: Props) {
 
 
                 <PromptInputAction className="justify-end" tooltip={false}>
-                    <Button asChild>
-                        <SubmitButton
-                            onClick={handleSubmit}
-                            isLoading={isLoading}
-                            hasContent={prompt.trim().length !== 0}
-                        />
-                    </Button>
+                    <SubmitButton
+                        onClick={handleSubmit}
+                        isLoading={isLoading}
+                        hasContent={prompt.trim().length !== 0}
+                    />
+                    {/* <Button asChild>
+                    </Button> */}
                 </PromptInputAction>
             </PromptInputActions>
 

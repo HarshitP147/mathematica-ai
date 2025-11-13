@@ -63,36 +63,36 @@ export async function POST(req: Request) {
         // Revalidate the home page to update the chat list
         revalidatePath("/");
 
-        const messageId = v4();
+        // const messageId = v4();
 
-        // add the prompt as the first message in the chat
-        const { data: messageData, error: messageError } = await supabase
-            .from("messages")
-            .insert({
-                message_id: messageId,
-                content: prompt,
-                role: "user",
-                chat_id: chatId,
-            });
+        // // add the prompt as the first message in the chat
+        // const { data: messageData, error: messageError } = await supabase
+        //     .from("messages")
+        //     .insert({
+        //         message_id: messageId,
+        //         content: prompt,
+        //         role: "user",
+        //         chat_id: chatId,
+        //     });
 
-        if (messageError) {
-            throw messageError;
-        }
+        // if (messageError) {
+        //     throw messageError;
+        // }
 
 
-        // Associate the message with the user in user_msgs table
-        const { data: userMsgData, error: userMsgError } = await supabase
-            .from("user_msgs")
-            .insert({
-                user_id: userData.user.id,
-                message_id: messageId,
-                sender_type: "user",
-                model_name: null,
-            });
+        // // Associate the message with the user in user_msgs table
+        // const { data: userMsgData, error: userMsgError } = await supabase
+        //     .from("user_msgs")
+        //     .insert({
+        //         user_id: userData.user.id,
+        //         message_id: messageId,
+        //         sender_type: "user",
+        //         model_name: null,
+        //     });
 
-        if (userMsgError) {
-            throw userMsgError;
-        }
+        // if (userMsgError) {
+        //     throw userMsgError;
+        // }
 
         // Return the chat ID so client can redirect
         return NextResponse.json({
