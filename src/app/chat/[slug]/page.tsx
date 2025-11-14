@@ -34,10 +34,12 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     const chatName = await getChatName(resolvedParams.slug);
     const chat = chatName ? { name: chatName } : null;
 
+
+
     return (
         <div className="min-h-screen min-w-full relative overflow-hidden flex flex-col">
 
-            <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm flex items-center py-3 gap-x-3 px-4">
+            <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl   border-b shadow-sm flex items-center py-3 gap-x-3 px-4">
                 <SidebarTrigger className="hover:cursor-pointer p-2 rounded-lg hover:bg-accent" />
                 <div className="flex-1 text-center">
                     <h1 className="text-xl font-semibold">{chat ? chat.name : resolvedParams.slug}</h1>
@@ -47,8 +49,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
             {/* content area could render messages here */}
 
-            <ChatBody />
-
+            <ChatBody slug={resolvedParams.slug} />
         </div>
     )
 }   

@@ -7,6 +7,8 @@ import { Empty, EmptyContent, EmptyTitle } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import ChatPromptInput from '@/components/layout/chat-prompt';
 
+import { createNewChatAction } from './actions';
+
 export default async function Home() {
     const supabase = createClient();
 
@@ -26,7 +28,7 @@ export default async function Home() {
                     <p className='text-lg text-foreground'>Your AI chat assistant.</p>
                     {isSignedIn ? (
                         <div className='mb-4 w-[200%]'>
-                            <ChatPromptInput />
+                            <ChatPromptInput action={createNewChatAction} />
                         </div>
                     ) : (
                         <Button asChild>

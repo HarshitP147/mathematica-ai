@@ -33,7 +33,7 @@ export default function SubmitButton({ hasContent, onClick, isLoading }: SubmitB
                     <TooltipProvider delayDuration={300}>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button disabled={isLoading} size="icon" className="shrink-0 rounded-full">
+                                <Button disabled={isLoading} type="submit" size="icon" className="shrink-0 rounded-full">
                                     {isLoading ? (
                                         <Spinner className="w-5 h-5" />
                                     ) : (

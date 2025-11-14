@@ -11,8 +11,7 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
-    const isProtectedRoute = request.nextUrl.pathname.startsWith("/story") ||
-        request.nextUrl.pathname.startsWith("/dashboard");
+    const isProtectedRoute = request.nextUrl.pathname.startsWith("/chat");
 
     // If user is logged in and tries to access auth page, redirect to home
     if (user && isAuthPage) {
