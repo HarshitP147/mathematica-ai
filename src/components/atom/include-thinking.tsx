@@ -17,8 +17,6 @@ export default function IncludeThinking({ includeThinking }: { includeThinking: 
                     ease: "easeInOut"
                 }}
             >
-
-
                 {includeThinking ? (
                     <Lightbulb className="" />
                 ) : (

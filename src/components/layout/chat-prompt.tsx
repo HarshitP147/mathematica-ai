@@ -1,7 +1,7 @@
 'use client'
 
 import type { KeyboardEvent } from "react"
-import { useState, useActionState, startTransition } from "react"
+import { useState, useActionState, startTransition, useEffect } from "react"
 import { useParams, useRouter, } from "next/navigation"
 
 import {
@@ -26,70 +26,55 @@ export default function ChatPromptInput(props: Props) {
     const [includeThinking, setIncludeThinking] = useState(false);
     const { slug } = useParams();
 
-    const [state, formAction, pending] = useActionState(props.action!, { prompt, slug, includeThinking });
+    const [state, formAction, pending] = useActionState(props.action!, { prompt: "", includeThinking: false });
 
-    async function handleSubmit(event?: React.FormEvent) {
+    // async function handleSubmit(event?: React.FormEvent) {
+    //     event?.preventDefault();
+
+    //     // let chatId = slug ?? '/';
+    //     // else {
+    //     //     try {
+    //     //         await props.sendPrompt!(prompt, includeThinking);
+    //     //         setPrompt("");
+    //     //     } catch (error) {
+    //     //         console.error(error);
+    //     //     } finally {
+    //     //         setIsLoading(false);
+    //     //     }
+    //     // }
+    // }
+
+    async function handleSubmit(event: React.FormEvent) {
         event?.preventDefault();
 
-        // let chatId = slug ?? '/';
+        if (prompt.length === 0) {
+            return;
+        }
 
-        // if (chatId === '/') {
-        //     try {
-        //         const response = await fetch("/api/index", {
-        //             method: "POST",
-        //             body: JSON.stringify({ prompt: prompt }),
-        //             headers: {
-        //                 'Content-Type': 'application/json'
-        //             }
-        //         });
 
-        //         if (!response.ok) {
-        //             throw new Error("Failed to create chat");
-        //         }
 
-        //         const data = await response.json();
+        const chatId = slug ?? undefined;
 
-        //         const currentPrompt = prompt;
-        //         setPrompt("");
+        if (chatId) {
+            console.log("In a chat", chatId);
+        } else {
 
-        //         // Redirect to the new chat page - the message is already in DB
-        //         // Pass initialPrompt only to trigger AI response, not to create duplicate
-        //         router.push(`/chat/${data.chatId}?initialPrompt=${encodeURIComponent(currentPrompt)}`);
-
-        //         // Refresh to update the chat list in the sidebar
-        //         router.refresh();
-        //     } catch (error) {
-        //         console.error(error);
-        //     } finally {
-        //         setIsLoading(false);
-        //     }
-        // }
-
-        // else {
-        //     try {
-        //         await props.sendPrompt!(prompt, includeThinking);
-        //         setPrompt("");
-        //     } catch (error) {
-        //         console.error(error);
-        //     } finally {
-        //         setIsLoading(false);
-        //     }
-        // }
-
-        // props.action!({ prompt, slug, includeThinking })
+            startTransition(() => {
+                // @ts-ignore
+                const form = (event.currentTarget.form);
+                if (form) {
+                    const formData = new FormData(form);
+                    formAction(formData);
+                }
+            });
+        }
 
     }
 
     function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
         if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
-            startTransition(() => {
-                const form = event.currentTarget.form;
-                if (form) {
-                    const formData = new FormData(form);
-                    formAction(formData);
-                }
-            });
+            handleSubmit(event);
         }
     }
 
@@ -123,8 +108,9 @@ export default function ChatPromptInput(props: Props) {
                             </Button>
                         </PromptInputAction>
 
+                        <input type="hidden" name="includeThinking" value={includeThinking ? "true" : "false"} />
                         <PromptInputAction tooltip={"Toggle Thinking"} >
-                            <Button variant={includeThinking ? "default" : "outline"} className="rounded-full p-2.5" onClick={() => setIncludeThinking(!includeThinking)}>
+                            <Button name="includeThinking" variant={includeThinking ? "default" : "outline"} type={"button"} className="rounded-full p-2.5" onClick={() => setIncludeThinking(!includeThinking)}>
                                 <IncludeThinking includeThinking={includeThinking} />
                             </Button>
                         </PromptInputAction>

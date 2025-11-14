@@ -100,7 +100,7 @@ export async function POST(req: Request) {
                 }
             },
             onError: (err) => {
-                console.error("Error during text streaming:", err.error.cause);
+                console.error("Error during text streaming:", err);
                 throw err;
             },
             onFinish: async ({ text, reasoningText }) => {

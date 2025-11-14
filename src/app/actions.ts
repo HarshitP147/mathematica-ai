@@ -1,6 +1,7 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirect, } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
 
@@ -40,6 +41,5 @@ export async function createNewChatAction(state: any, formData: FormData) {
         throw new Error("Failed to create new chat");
     }
 
-    // revalidatePath("/");
     redirect(`/chat/${chatId}`);
 }
