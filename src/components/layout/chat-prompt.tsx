@@ -2,7 +2,7 @@
 
 import type { KeyboardEvent } from "react"
 import { useState, useActionState, startTransition, useEffect } from "react"
-import { useParams, useRouter, } from "next/navigation"
+import { useParams, } from "next/navigation"
 
 import {
     PromptInput,
@@ -26,7 +26,13 @@ export default function ChatPromptInput(props: Props) {
     const [includeThinking, setIncludeThinking] = useState(false);
     const { slug } = useParams();
 
-    const [state, formAction, pending] = useActionState(props.action!, { prompt: "", includeThinking: false });
+    let promptAction;
+
+    if (props.action) {
+        promptAction = props.action;
+    }
+
+    const [state, formAction, pending] = useActionState(promptAction!, { prompt: "", includeThinking: false });
 
     // async function handleSubmit(event?: React.FormEvent) {
     //     event?.preventDefault();
@@ -51,24 +57,20 @@ export default function ChatPromptInput(props: Props) {
             return;
         }
 
+        const chatId = slug ?? "/";
 
+        // console.log(chatId);
+        startTransition(() => {
+            // @ts-ignore
+            const form = (event.currentTarget.form);
+            // append the chatId to the form data if it exists
 
-        const chatId = slug ?? undefined;
-
-        if (chatId) {
-            console.log("In a chat", chatId);
-        } else {
-
-            startTransition(() => {
-                // @ts-ignore
-                const form = (event.currentTarget.form);
-                if (form) {
-                    const formData = new FormData(form);
-                    formAction(formData);
-                }
-            });
-        }
-
+            if (form) {
+                const formData = new FormData(form);
+                formData.append("chatId", chatId as string)
+                formAction(formData);
+            }
+        });
     }
 
     function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {

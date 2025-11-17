@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect, } from "next/navigation";
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
@@ -31,15 +31,41 @@ export async function createNewChatAction(state: any, formData: FormData) {
 
     console.log("AI Response for chat name:", chatName);
 
-    const { data: chatId, error: rpcError } = await supabase.rpc("create_chat", {
-        p_user_id: userData.user.id,
-        p_chat_name: chatName,
-    });
+    const { data: chatId, error: rpcError } = await supabase.rpc(
+        "create_chat",
+        {
+            p_user_id: userData.user.id,
+            p_chat_name: chatName,
+        },
+    );
 
     if (rpcError) {
         console.error("Error creating new chat:", rpcError);
         throw new Error("Failed to create new chat");
     }
+
+    revalidatePath("/chat");
+
+    // add the new message as the first message in the chat
+    const { data: messageInfo, error: messageAddError } = await supabase.rpc(
+        "add_message",
+        {
+            p_chat_id: chatId,
+            p_sender_id: userData.user.id,
+            p_sender_role: "user",
+            p_content: prompt,
+            p_model_name: null,
+        },
+    );
+
+    if (messageAddError) {
+        console.error("Error adding message:", messageAddError);
+        throw new Error("Failed to add message");
+    }
+
+    console.log(messageInfo);
+
+    revalidatePath("/chat");
 
     redirect(`/chat/${chatId}`);
 }

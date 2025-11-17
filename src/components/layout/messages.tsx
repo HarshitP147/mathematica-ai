@@ -1,23 +1,42 @@
+'use client'
+import { useState } from "react"
 
 import { ChatContainerContent } from "@/components/ui/chat-container"
 import { Message } from "@/components/ui/message"
 import Response from "@/components/atom/response"
 
-import { createClient } from "@/util/supabase/server"
+import { createClient } from "@/util/supabase/client"
+import { useEffect } from "react"
 
 
-export default async function Messages({ slug }: { slug?: string }) {
+export default function Messages({ slug }: { slug?: string }) {
     const supabase = createClient()
 
-    const { data: chatData, error } = await supabase.from("messages")
-        .select('message_id, content, role, created_at')
-        .eq('chat_id', slug);
+    const [chatData, setChatData] = useState<Array<{
+        message_id: string;
+        content: string;
+        role: string;
+        created_at: string;
+    }> | null>(null);
 
 
+    useEffect(() => {
+        // Any client-side effects can be handled here
 
-    if (error) {
-        return <div>Error loading messages: {error.message}</div>
-    }
+        supabase.from("messages")
+            .select('message_id, content, role, created_at')
+            .eq('chat_id', slug)
+            .then(({ data, error }) => {
+                if (error) {
+                    console.error("Error loading messages:", error);
+                } else {
+                    setChatData(data);
+                }
+            });
+
+    }, []);
+
+
 
     return (
         <ChatContainerContent className="my-8 pb-36">
