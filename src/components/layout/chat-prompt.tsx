@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button"
 import { Paperclip } from "lucide-react"
 
 type Props = {
-    loading?: boolean,
     action?: (prevState: any, formData: FormData) => Promise<any>
 }
 
@@ -26,29 +25,7 @@ export default function ChatPromptInput(props: Props) {
     const [includeThinking, setIncludeThinking] = useState(false);
     const { slug } = useParams();
 
-    let promptAction;
-
-    if (props.action) {
-        promptAction = props.action;
-    }
-
-    const [state, formAction, pending] = useActionState(promptAction!, { prompt: "", includeThinking: false });
-
-    // async function handleSubmit(event?: React.FormEvent) {
-    //     event?.preventDefault();
-
-    //     // let chatId = slug ?? '/';
-    //     // else {
-    //     //     try {
-    //     //         await props.sendPrompt!(prompt, includeThinking);
-    //     //         setPrompt("");
-    //     //     } catch (error) {
-    //     //         console.error(error);
-    //     //     } finally {
-    //     //         setIsLoading(false);
-    //     //     }
-    //     // }
-    // }
+    const [state, formAction, pending] = useActionState(props.action!, { prompt: "", includeThinking: false });
 
     async function handleSubmit(event: React.FormEvent) {
         event?.preventDefault();
@@ -59,7 +36,6 @@ export default function ChatPromptInput(props: Props) {
 
         const chatId = slug ?? "/";
 
-        // console.log(chatId);
         startTransition(() => {
             // @ts-ignore
             const form = (event.currentTarget.form);

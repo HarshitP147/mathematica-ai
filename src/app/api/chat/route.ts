@@ -1,12 +1,10 @@
 import { streamText } from "ai";
 import { google, GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { createClient } from "@/util/supabase/server";
-import { v4 } from "uuid";
-
-export const maxDuration = 300; // 5 minutes
+import { redirect } from "next/navigation";
 
 export async function GET() {
-    return new Response("Chat endpoint is live");
+    return redirect("/");
 }
 
 export async function POST(req: Request) {
@@ -31,7 +29,6 @@ export async function POST(req: Request) {
     // Only insert user message if not skipping (i.e., not from initial prompt)
     if (!skipUserMessage) {
         try {
-            const messageId = v4();
 
             const { data: userData, error } = await supabase.auth.getUser();
 
@@ -39,38 +36,20 @@ export async function POST(req: Request) {
                 return new Response("Unauthorized", { status: 401 });
             }
 
-            const { data: msgData, error: msgError } = await supabase.from(
-                "messages",
-            ).insert({
-                message_id: messageId,
-                content: prompt,
-                role: "user",
-                chat_id: chatId,
-            });
+            const { data: msgData, error: msgError } = await supabase.rpc(
+                "add_message",
+                {
+                    p_chat_id: chatId,
+                    p_sender_id: userData.user.id,
+                    p_sender_role: "user",
+                    p_content: prompt,
+                    p_model_name: null,
+                },
+            );
 
             if (msgError) {
                 console.error("Error inserting message:", msgError);
                 return new Response("Failed to insert message", {
-                    status: 500,
-                });
-            }
-
-            // lastly, associate with the user
-            const { data: userMsgData, error: userMsgError } = await supabase
-                .from("user_msgs")
-                .insert({
-                    user_id: userData.user.id,
-                    message_id: messageId,
-                    sender_type: "user",
-                    model_name: null,
-                });
-
-            if (userMsgError) {
-                console.error(
-                    "Error associating message with user:",
-                    userMsgError,
-                );
-                return new Response("Failed to associate message with user", {
                     status: 500,
                 });
             }
@@ -105,7 +84,6 @@ export async function POST(req: Request) {
             },
             onFinish: async ({ text, reasoningText }) => {
                 // store the AI response in the database
-                const aiMessageId = v4();
 
                 // format the full text with reasoning if available
                 const content =
@@ -115,32 +93,19 @@ export async function POST(req: Request) {
                     const supabase = createClient();
 
                     const { data: aiMsgData, error: aiMsgError } =
-                        await supabase
-                            .from("messages")
-                            .insert({
-                                message_id: aiMessageId,
-                                content: content,
-                                role: "assistant",
-                                chat_id: chatId,
-                            });
+                        await supabase.rpc(
+                            "add_message",
+                            {
+                                p_chat_id: chatId,
+                                p_sender_id: null,
+                                p_sender_role: "assistant",
+                                p_content: content,
+                                p_model_name: "gemini-2.5-pro",
+                            },
+                        );
 
                     if (aiMsgError) {
                         throw aiMsgError;
-                    }
-
-                    // Associate AI message with model in user_msgs table
-                    const { data: aiUserMsgData, error: aiUserMsgError } =
-                        await supabase
-                            .from("user_msgs")
-                            .insert({
-                                user_id: null,
-                                message_id: aiMessageId,
-                                sender_type: "model",
-                                model_name: "gemini-2.5-pro",
-                            });
-
-                    if (aiUserMsgError) {
-                        throw aiUserMsgError;
                     }
                 } catch (err) {
                     console.error("Error saving AI message to database:", err);

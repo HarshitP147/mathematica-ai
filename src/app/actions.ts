@@ -44,8 +44,6 @@ export async function createNewChatAction(state: any, formData: FormData) {
         throw new Error("Failed to create new chat");
     }
 
-    revalidatePath("/chat");
-
     // add the new message as the first message in the chat
     const { data: messageInfo, error: messageAddError } = await supabase.rpc(
         "add_message",
@@ -63,7 +61,6 @@ export async function createNewChatAction(state: any, formData: FormData) {
         throw new Error("Failed to add message");
     }
 
-    console.log(messageInfo);
 
     revalidatePath("/chat");
 

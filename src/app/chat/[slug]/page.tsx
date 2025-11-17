@@ -49,7 +49,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
             {/* content area could render messages here */}
 
-            <ChatBody slug={resolvedParams.slug} />
+            <ChatBody />
         </div>
     )
 }   
