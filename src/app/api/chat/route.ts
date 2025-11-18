@@ -17,8 +17,8 @@ export async function POST(req: Request) {
     } = await req
         .json();
 
-    // append the prompt to messages array
-    messages.push({ role: "user", content: prompt });
+    // // append the prompt to messages array
+    // messages.push({ role: "user", content: prompt });
 
     if (!chatId) {
         return new Response("Chat ID is required", { status: 400 });
@@ -26,10 +26,22 @@ export async function POST(req: Request) {
 
     const supabase = createClient();
 
-    // Only insert user message if not skipping (i.e., not from initial prompt)
+    // Build messages array - filter out unnecessary fields and append current prompt if not skipping
+    let allMessages = messages && messages.length > 0 
+        ? messages.map((msg: any) => ({ role: msg.role, content: msg.content }))
+        : [];
+
+    // If not skipping user message, append the current prompt to messages for AI context
+    if (!skipUserMessage) {
+        allMessages.push({ role: "user", content: prompt });
+    } else if (allMessages.length === 0) {
+        // For initial prompt that's already in DB, still need to include it for AI
+        allMessages.push({ role: "user", content: prompt });
+    }
+
+    // Only insert user message to DB if not skipping (i.e., not from initial prompt)
     if (!skipUserMessage) {
         try {
-
             const { data: userData, error } = await supabase.auth.getUser();
 
             if (error || !userData.user) {
@@ -64,7 +76,7 @@ export async function POST(req: Request) {
         const result = streamText({ // model: google("gemini-2.5-pro"),
             model: google("gemini-2.5-pro"),
             // prompt: prompt,
-            messages: messages,
+            messages: allMessages,
             providerOptions: {
                 google: {
                     thinkingConfig: {

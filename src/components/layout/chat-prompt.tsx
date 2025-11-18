@@ -44,7 +44,7 @@ export default function ChatPromptInput(props: Props) {
             if (form) {
                 const formData = new FormData(form);
                 formData.append("chatId", chatId as string)
-                formAction(formData);
+                formAction(formData)
             }
         });
     }

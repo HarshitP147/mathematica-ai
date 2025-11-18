@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
+import { useParams, useSearchParams, useRouter } from "next/navigation"
 
 import { ChatContainerRoot } from "@/components/ui/chat-container"
 import { ScrollButton } from "@/components/ui/scroll-button"
@@ -22,6 +22,9 @@ type ChatDataType = Array<{
 export default function ChatBody() {
     const [msgList, setMsgList] = useState<ChatDataType>([]);
     const { slug } = useParams();
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const initialPromptSent = useRef(false);
 
     useEffect(() => {
         // Any client-side effects can be handled here
@@ -43,11 +46,7 @@ export default function ChatBody() {
 
     }, [slug]);
 
-    async function handleSubmit(prevState: any, formData: FormData) {
-        const prompt = formData.get("prompt") as string;
-        const includeThinking = formData.get("includeThinking") === "true";
-        const chatId = formData.get("chatId") as string;
-
+    async function streamResponse(prompt: string, includeThinking: boolean, chatId: string, skipUserMessage: boolean = false) {
         try {
             const response = await fetch("/api/chat", {
                 method: "POST",
@@ -55,10 +54,10 @@ export default function ChatBody() {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    prompt,
-                    includeThinking,
-                    chatId,
-                    messages: msgList
+                    prompt: prompt,
+                    includeThinking: includeThinking,
+                    chatId: chatId,
+                    messages: msgList,
                 })
             });
 
@@ -69,9 +68,10 @@ export default function ChatBody() {
 
             if (!response.body) {
                 console.error("No response body");
+                return;
             }
 
-            const reader = response.body!.getReader();
+            const reader = response.body.getReader();
             const decoder = new TextDecoder("utf-8");
 
             try {
@@ -79,14 +79,11 @@ export default function ChatBody() {
                     const { done, value } = await reader.read();
                     if (done) break;
                     if (value) {
-                        // value is a Uint8Array
                         const chunk = decoder.decode(value, { stream: true });
                         console.log(chunk);
-                        // setResponseText(prev => prev + chunk);
                     }
                 }
             } finally {
-                // ensure the reader is released
                 try {
                     reader.releaseLock();
                 } catch {
@@ -94,7 +91,6 @@ export default function ChatBody() {
                 }
 
                 // Refresh messages from database after streaming completes
-                // Wait a bit for the onFinish callback to complete in the API
                 setTimeout(async () => {
                     const { data, error } = await supabase
                         .from("messages")
@@ -102,17 +98,37 @@ export default function ChatBody() {
                         .eq('chat_id', slug)
                         .order('messages(created_at)', { ascending: true });
 
-
                     if (!error && data) {
                         setMsgList(data);
                     }
                 }, 1000);
-
             }
-
         } catch (err) {
             console.error("Error submitting prompt:", err);
         }
+    }
+
+    // Handle initial prompt from URL
+    useEffect(() => {
+        const initialPrompt = searchParams.get('initialPrompt');
+
+        if (initialPrompt && !initialPromptSent.current && slug) {
+            initialPromptSent.current = true;
+
+            // Remove the query parameter from URL
+            router.replace(`/chat/${slug}`, { scroll: false });
+
+            // Send the initial prompt (skipUserMessage = true since it's already in DB)
+            streamResponse(decodeURIComponent(initialPrompt), true, slug as string, true);
+        }
+    }, [searchParams, slug, router]);
+
+    async function handleSubmit(prevState: any, formData: FormData) {
+        const prompt = formData.get("prompt") as string;
+        const includeThinking = formData.get("includeThinking") === "true";
+        const chatId = formData.get("chatId") as string;
+
+        await streamResponse(prompt, includeThinking, chatId, false);
     }
 
 
