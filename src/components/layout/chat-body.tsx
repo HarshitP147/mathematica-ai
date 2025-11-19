@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useOptimistic } from "react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 
 import { ChatContainerRoot } from "@/components/ui/chat-container"
@@ -11,16 +11,24 @@ import { createClient } from "@/util/supabase/client"
 
 const supabase = createClient()
 
-type ChatDataType = Array<{
+type ChatMessage = {
     message_id: string;
     content: string;
     role: string;
     created_at: string;
-}> | null;
+};
+
+type ChatDataType = Array<ChatMessage> | null;
 
 
 export default function ChatBody() {
     const [msgList, setMsgList] = useState<ChatDataType>([]);
+    const [streamingContent, setStreamingContent] = useState<string>("");
+    const [isWaitingForResponse, setIsWaitingForResponse] = useState<boolean>(false);
+    const [optimisticMessages, addOptimisticMessage] = useOptimistic(
+        msgList || [],
+        (state: ChatMessage[], newMessage: ChatMessage) => [...state, newMessage]
+    );
     const { slug } = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -47,6 +55,9 @@ export default function ChatBody() {
     }, [slug]);
 
     async function streamResponse(prompt: string, includeThinking: boolean, chatId: string, skipUserMessage: boolean = false) {
+        setStreamingContent(""); // Clear previous streaming content
+        setIsWaitingForResponse(true); // Show loading state until first chunk arrives
+
         try {
             const response = await fetch("/api/chat", {
                 method: "POST",
@@ -58,21 +69,25 @@ export default function ChatBody() {
                     includeThinking: includeThinking,
                     chatId: chatId,
                     messages: msgList,
+                    skipUserMessage: skipUserMessage
                 })
             });
 
             if (!response.ok) {
                 console.error("Error submitting prompt:", response.statusText);
+                setIsWaitingForResponse(false);
                 return;
             }
 
             if (!response.body) {
                 console.error("No response body");
+                setIsWaitingForResponse(false);
                 return;
             }
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder("utf-8");
+            let hasReceivedChunk = false;
 
             try {
                 while (true) {
@@ -80,7 +95,11 @@ export default function ChatBody() {
                     if (done) break;
                     if (value) {
                         const chunk = decoder.decode(value, { stream: true });
-                        console.log(chunk);
+                        setStreamingContent(prev => prev + chunk);
+                        if (!hasReceivedChunk) {
+                            hasReceivedChunk = true;
+                            setIsWaitingForResponse(false); // First chunk received, stop showing loading
+                        }
                     }
                 }
             } finally {
@@ -90,27 +109,36 @@ export default function ChatBody() {
                     // ignore release errors
                 }
 
+                if (!hasReceivedChunk) {
+                    setIsWaitingForResponse(false); // Ensure loading state clears if stream ends with no chunks
+                }
+
                 // Refresh messages from database after streaming completes
                 setTimeout(async () => {
                     const { data, error } = await supabase
                         .from("messages")
                         .select('message_id, content, role, created_at')
                         .eq('chat_id', slug)
-                        .order('messages(created_at)', { ascending: true });
+                        .order('messages.created_at', { ascending: true });
 
                     if (!error && data) {
                         setMsgList(data);
+                        setStreamingContent(""); // Clear streaming content after loading from DB
                     }
+                    setIsWaitingForResponse(false); // Ensure loading state is cleared after refresh attempt
                 }, 1000);
             }
         } catch (err) {
             console.error("Error submitting prompt:", err);
+            setIsWaitingForResponse(false);
         }
     }
 
     // Handle initial prompt from URL
     useEffect(() => {
         const initialPrompt = searchParams.get('initialPrompt');
+        const includeThinkingParam = searchParams.get('includeThinking');
+        const includeThinking = includeThinkingParam === 'true';
 
         if (initialPrompt && !initialPromptSent.current && slug) {
             initialPromptSent.current = true;
@@ -119,7 +147,7 @@ export default function ChatBody() {
             router.replace(`/chat/${slug}`, { scroll: false });
 
             // Send the initial prompt (skipUserMessage = true since it's already in DB)
-            streamResponse(decodeURIComponent(initialPrompt), true, slug as string, true);
+            streamResponse(decodeURIComponent(initialPrompt), includeThinking, slug as string, true);
         }
     }, [searchParams, slug, router]);
 
@@ -128,13 +156,22 @@ export default function ChatBody() {
         const includeThinking = formData.get("includeThinking") === "true";
         const chatId = formData.get("chatId") as string;
 
+        // Add optimistic user message
+        const optimisticUserMessage: ChatMessage = {
+            message_id: `temp-${Date.now()}`,
+            content: prompt,
+            role: "user",
+            created_at: new Date().toISOString()
+        };
+        addOptimisticMessage(optimisticUserMessage);
+
         await streamResponse(prompt, includeThinking, chatId, false);
     }
 
-
     return (
         <ChatContainerRoot >
-            <Messages messageList={msgList} />
+            <Messages messageList={optimisticMessages} streamingContent={streamingContent} isWaitingForResponse={isWaitingForResponse} />
+
 
 
             <footer className="fixed bottom-0 left-0 right-0 px-4 py-4 bg-transparent">

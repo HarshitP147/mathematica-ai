@@ -11,6 +11,7 @@ export async function createNewChatAction(state: any, formData: FormData) {
     const supabase = createClient();
 
     const prompt = formData.get("prompt") as string;
+    const includeThinking = formData.get("includeThinking");
 
     const { data: userData, error } = await supabase.auth.getUser();
 
@@ -64,5 +65,5 @@ export async function createNewChatAction(state: any, formData: FormData) {
 
     revalidatePath("/chat");
 
-    redirect(`/chat/${chatId}?initialPrompt=${encodeURIComponent(prompt)}`);
+    redirect(`/chat/${chatId}?initialPrompt=${encodeURIComponent(prompt)}&includeThinking=${encodeURIComponent(includeThinking as string)}`);
 }

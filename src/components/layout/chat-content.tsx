@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { MessageSquare } from "lucide-react";
 
 import ChatList from "./chat-list";
-// import ChatLink from "@/components/atom/chat-link";
 import { SidebarMenu } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 

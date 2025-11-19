@@ -45,12 +45,13 @@ export default function ChatPromptInput(props: Props) {
                 const formData = new FormData(form);
                 formData.append("chatId", chatId as string)
                 formAction(formData)
+                setPrompt(""); // Clear the prompt after submission
             }
         });
     }
 
     function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-        if (event.key === "Enter" && !event.shiftKey) {
+        if (event.key === "Enter" && event.ctrlKey) {
             event.preventDefault();
             handleSubmit(event);
         }
