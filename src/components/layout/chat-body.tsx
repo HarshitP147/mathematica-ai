@@ -156,6 +156,9 @@ export default function ChatBody() {
         const includeThinking = formData.get("includeThinking") === "true";
         const chatId = formData.get("chatId") as string;
 
+        // Set loading state immediately for instant feedback
+        setIsWaitingForResponse(true);
+
         // Add optimistic user message
         const optimisticUserMessage: ChatMessage = {
             message_id: `temp-${Date.now()}`,

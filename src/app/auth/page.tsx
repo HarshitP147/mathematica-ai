@@ -1,8 +1,10 @@
 'use client'
 
 import Image from "next/image";
-
 import { createClient } from "@/util/supabase/client"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Zap } from "lucide-react"
 
 export default function Page() {
     const supabase = createClient()
@@ -21,36 +23,58 @@ export default function Page() {
         if (error) {
             console.error("Error during Google OAuth sign-in:", error);
         }
-
     }
 
-
-
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen py-2">
-            <div className="card w-96 bg-base-100 shadow-xl">
-                <div className="card-body items-center text-center">
-                    <h2 className="card-title text-3xl font-bold mb-2">Welcome to Sceal AI</h2>
-                    <p className="text-base-content/70 mb-6">Sign in to start creating amazing stories</p>
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-background via-muted/20 to-background p-4">
 
-                    <div className="card-actions w-full">
-                        <button
-                            className="btn btn-lg w-full bg-white hover:bg-gray-50 text-black border border-gray-300 gap-3 normal-case shadow-sm"
-                            onClick={handleGoogleLogin}
-                        >
-                            <Image
-                                src="/google.svg"
-                                alt="Google"
-                                width={32}
-                                height={32}
-                            />
-                            <span className="text-base font-medium">Continue with Google</span>
-                        </button>
+            <Card className="w-full max-w-md border-border/60 shadow-2xl backdrop-blur-sm">
+                <CardHeader className="space-y-3 text-center pb-6">
+                    <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                        <Zap className="h-8 w-8 text-primary" />
                     </div>
+                    <CardTitle className="text-3xl font-bold tracking-tight">
+                        Welcome to Mathematica AI
+                    </CardTitle>
+                    <CardDescription className="text-base text-muted-foreground">
+                        Sign in to unlock powerful AI conversations and insights
+                    </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                    <Button
+                        variant="secondary"
+                        size="lg"
+                        className="w-full gap-3 border-[#E0E0E0] bg-[#F2F2F2] transition-all duration-200 shadow-sm hover:shadow-md"
+                        onClick={handleGoogleLogin}
+                    >
+                        <Image
+                            src="/google.svg"
+                            alt="Google"
+                            width={32}
+                            height={32}
+                        />
+                        <span className="font-medium">Continue with Google</span>
+                    </Button>
+
+                    <Button
+                        size="lg"
+                        className="w-full gap-3 bg-black text-white hover:bg-black/90 transition-all duration-200 shadow-sm hover:shadow-md"
+                        onClick={() => { }}
+                    >
+                        <Image
+                            src="/apple.svg"
+                            alt="Apple"
+                            width={24}
+                            height={24}
+                            className="invert"
+                        />
+                        <span className="font-semibold">Continue with Apple</span>
+                    </Button>
 
 
-                </div>
-            </div>
-        </div>
+                </CardContent>
+            </Card>
+        </div >
     )
 }

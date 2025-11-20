@@ -12,7 +12,6 @@ import {
     ChainOfThoughtItem,
 } from "@/components/ui/chain-of-thought"
 import { Reasoning, ReasoningTrigger, ReasoningContent } from "@/components/ui/reasoning"
-import { BrainCircuit } from "lucide-react"
 import { Markdown } from "../ui/markdown"
 
 type ResponseProps = {
@@ -127,7 +126,7 @@ export default function Response({ content, isStreaming = false, className }: Re
     }
 
     return (
-        <div className="flex w-full justify-start">
+        <div className="flex w-full justify-start border border-border rounded-xl my-6  ">
             <div className="w-full max-w-full">
                 <div className="group relative">
                     <Message 

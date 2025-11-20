@@ -1,10 +1,9 @@
-import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 import { createClient } from '@/util/supabase/server';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Empty, EmptyContent, EmptyTitle } from '@/components/ui/empty';
-import { Button } from '@/components/ui/button';
 import ChatPromptInput from '@/components/layout/chat-prompt';
 
 import { createNewChatAction } from './actions';
@@ -14,6 +13,11 @@ export default async function Home() {
 
     // server-side check for authenticated user
     let isSignedIn = (await supabase.auth.getUser()).data.user !== null;
+
+    if(!isSignedIn) {
+        redirect('/auth');
+    }
+
 
     return (
         <>
@@ -26,15 +30,9 @@ export default async function Home() {
                         </h1>
                     </EmptyTitle>
                     <p className='text-lg text-foreground'>Your AI chat assistant.</p>
-                    {isSignedIn ? (
-                        <div className='mb-4 w-[200%]'>
-                            <ChatPromptInput action={createNewChatAction} />
-                        </div>
-                    ) : (
-                        <Button asChild>
-                            <Link href="/auth" className="btn btn-primary btn-lg mr-4">Login / Sign Up</Link>
-                        </Button>
-                    )}
+                    <div className='mb-4 w-[200%]'>
+                        <ChatPromptInput action={createNewChatAction} />
+                    </div>
                 </EmptyContent>
             </Empty>
         </>
