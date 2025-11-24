@@ -3,8 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { generateText } from "ai";
-import { google } from "@ai-sdk/google";
 
+import { gemini25Flash } from "@/util/ai-sdk/index";
 import { createClient } from "@/util/supabase/server";
 
 export async function createNewChatAction(state: any, formData: FormData) {
@@ -22,7 +22,7 @@ export async function createNewChatAction(state: any, formData: FormData) {
     // generate a chat name based on the prompt
 
     const aiResponse = await generateText({
-        model: google("gemini-2.5-flash"),
+        model: gemini25Flash,
         system: "You are a helpful assistant that generates chat names.",
         prompt:
             `Generate a concise and descriptive chat name for the following prompt, in less than 5 words:\n\n"${prompt}"\n\nChat Name:`,
@@ -62,8 +62,11 @@ export async function createNewChatAction(state: any, formData: FormData) {
         throw new Error("Failed to add message");
     }
 
-
     revalidatePath("/chat");
 
-    redirect(`/chat/${chatId}?initialPrompt=${encodeURIComponent(prompt)}&includeThinking=${encodeURIComponent(includeThinking as string)}`);
+    redirect(
+        `/chat/${chatId}?initialPrompt=${
+            encodeURIComponent(prompt)
+        }&includeThinking=${encodeURIComponent(includeThinking as string)}`,
+    );
 }

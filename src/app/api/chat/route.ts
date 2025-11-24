@@ -1,7 +1,9 @@
 import { streamText } from "ai";
-import { google, GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
+import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { createClient } from "@/util/supabase/server";
 import { redirect } from "next/navigation";
+
+import { gemini25Pro } from "@/util/ai-sdk/index";
 
 export async function GET() {
     return redirect("/");
@@ -74,7 +76,7 @@ export async function POST(req: Request) {
     try {
         // now generate the AI response as a stream
         const result = streamText({ // model: google("gemini-2.5-pro"),
-            model: google("gemini-2.5-pro"),
+            model: gemini25Pro,
             // prompt: prompt,
             messages: allMessages,
             providerOptions: {
