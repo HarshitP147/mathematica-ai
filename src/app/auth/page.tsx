@@ -45,7 +45,7 @@ export default function Page() {
                     <Button
                         variant="secondary"
                         size="lg"
-                        className="w-full gap-3 border-[#E0E0E0] bg-[#F2F2F2] transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="w-full gap-3 cursor-pointer border-[#E0E0E0] bg-[#F2F2F2] transition-all duration-200 shadow-sm hover:shadow-md"
                         onClick={handleGoogleLogin}
                     >
                         <Image
@@ -56,22 +56,6 @@ export default function Page() {
                         />
                         <span className="font-medium">Continue with Google</span>
                     </Button>
-
-                    <Button
-                        size="lg"
-                        className="w-full gap-3 bg-black text-white hover:bg-black/90 transition-all duration-200 shadow-sm hover:shadow-md"
-                        onClick={() => { }}
-                    >
-                        <Image
-                            src="/apple.svg"
-                            alt="Apple"
-                            width={24}
-                            height={24}
-                            className="invert"
-                        />
-                        <span className="font-semibold">Continue with Apple</span>
-                    </Button>
-
 
                 </CardContent>
             </Card>

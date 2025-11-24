@@ -119,7 +119,6 @@ export default function ChatBody() {
                         .from("messages")
                         .select('message_id, content, role, created_at')
                         .eq('chat_id', slug)
-                        .order('messages.created_at', { ascending: true });
 
                     if (!error && data) {
                         setMsgList(data);

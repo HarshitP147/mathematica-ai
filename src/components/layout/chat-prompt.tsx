@@ -82,7 +82,7 @@ export default function ChatPromptInput(props: Props) {
                     <div className="space-x-2">
 
                         <PromptInputAction tooltip={"Attach files"} >
-                            <Button variant={"outline"} className="rounded-full p-2">
+                            <Button variant={"outline"} type="button"  className="rounded-full p-2">
                                 <Paperclip className="text-foreground  " />
                             </Button>
                         </PromptInputAction>
