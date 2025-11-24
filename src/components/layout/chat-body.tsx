@@ -9,6 +9,7 @@ import Messages from "@/components/layout/messages"
 
 import { createClient } from "@/util/supabase/client"
 
+
 const supabase = createClient()
 
 type ChatMessage = {

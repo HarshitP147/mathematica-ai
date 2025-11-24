@@ -68,24 +68,16 @@ export default function ChatPromptInput(props: Props) {
             >
 
 
-                <PromptInputTextarea
-                    placeholder="Ask me anything..."
-                    onKeyDown={handleKeyDown}
-                    name="prompt"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    className="text-foreground dark:bg-transparent dark:backdrop-blur-3xl" />
-
 
                 <PromptInputActions className="w-full items-center justify-between ">
 
                     <div className="space-x-2">
 
-                        <PromptInputAction tooltip={"Attach files"} >
+                        {/* <PromptInputAction tooltip={"Attach files"} >
                             <Button variant={"outline"} type="button"  className="rounded-full p-2">
                                 <Paperclip className="text-foreground  " />
                             </Button>
-                        </PromptInputAction>
+                        </PromptInputAction> */}
 
                         <input type="hidden" name="includeThinking" value={includeThinking ? "true" : "false"} />
                         <PromptInputAction tooltip={"Toggle Thinking"} >
@@ -94,6 +86,16 @@ export default function ChatPromptInput(props: Props) {
                             </Button>
                         </PromptInputAction>
                     </div>
+
+
+
+                    <PromptInputTextarea
+                        placeholder="Ask me anything..."
+                        onKeyDown={handleKeyDown}
+                        name="prompt"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        className="text-foreground dark:bg-transparent dark:backdrop-blur-3xl" />
 
 
 

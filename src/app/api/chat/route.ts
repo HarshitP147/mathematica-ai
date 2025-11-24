@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     const supabase = createClient();
 
     // Build messages array - filter out unnecessary fields and append current prompt if not skipping
-    let allMessages = messages && messages.length > 0 
+    let allMessages = messages && messages.length > 0
         ? messages.map((msg: any) => ({ role: msg.role, content: msg.content }))
         : [];
 
@@ -94,39 +94,13 @@ export async function POST(req: Request) {
                 console.error("Error during text streaming:", err);
                 throw err;
             },
-            onFinish: async ({ text, reasoningText }) => {
-                // store the AI response in the database
-
-                // format the full text with reasoning if available
-                const content =
-                    `<reasoning-start>\n${reasoningText}\n<reasoning-end>\n\n<text-start>\n${text}\n<text-end>`;
-
-                try {
-                    const supabase = createClient();
-
-                    const { data: aiMsgData, error: aiMsgError } =
-                        await supabase.rpc(
-                            "add_message",
-                            {
-                                p_chat_id: chatId,
-                                p_sender_id: null,
-                                p_sender_role: "assistant",
-                                p_content: content,
-                                p_model_name: "gemini-2.5-pro",
-                            },
-                        );
-
-                    if (aiMsgError) {
-                        throw aiMsgError;
-                    }
-                } catch (err) {
-                    console.error("Error saving AI message to database:", err);
-                }
-            },
         });
 
         const responseStream = new ReadableStream({
             async start(controller) {
+                let fullText = "";
+                let fullReasoning = "";
+
                 for await (const chunk of result.fullStream) {
                     switch (chunk.type) {
                         case "text-start":
@@ -138,6 +112,26 @@ export async function POST(req: Request) {
                             controller.enqueue(
                                 new TextEncoder().encode("<text-end>"),
                             );
+
+                            // Save to DB
+                            const content =
+                                `<reasoning-start>\n${fullReasoning}\n<reasoning-end>\n\n<text-start>\n${fullText}\n<text-end>`;
+                            try {
+                                const supabase = createClient();
+                                await supabase.rpc("add_message", {
+                                    p_chat_id: chatId,
+                                    p_sender_id: null,
+                                    p_sender_role: "assistant",
+                                    p_content: content,
+                                    p_model_name: "gemini-2.5-pro",
+                                });
+                            } catch (err) {
+                                console.error(
+                                    "Error saving AI message to database:",
+                                    err,
+                                );
+                            }
+
                             controller.close();
                             break;
                         case "reasoning-start":
@@ -151,7 +145,13 @@ export async function POST(req: Request) {
                             );
                             break;
                         case "text-delta":
+                            fullText += chunk.text;
+                            controller.enqueue(
+                                new TextEncoder().encode(chunk.text),
+                            );
+                            break;
                         case "reasoning-delta":
+                            fullReasoning += chunk.text;
                             controller.enqueue(
                                 new TextEncoder().encode(chunk.text),
                             );
