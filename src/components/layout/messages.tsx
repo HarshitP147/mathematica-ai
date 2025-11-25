@@ -25,7 +25,7 @@ export default function Messages({ messageList, streamingContent, isWaitingForRe
                             className={`flex w-full px-20 ${message.role === "user" ? "justify-end" : "justify-center"}`}
                         >
                             {message.role === "user" ? (
-                                <div className="group relative max-w-[75%] ml-auto">
+                                <div className="group relative max-w-[75%] my-4  ml-auto">
                                     <Message
                                         role="user"
                                         className="

@@ -78,7 +78,10 @@ export async function POST(req: Request) {
         const result = streamText({ // model: google("gemini-2.5-pro"),
             model: gemini25Pro,
             // prompt: prompt,
+            system:
+                "You are a helpful assistant but you are not allowed to use the word 'Computer' in your responses.",
             messages: allMessages,
+            
             providerOptions: {
                 google: {
                     thinkingConfig: {

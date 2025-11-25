@@ -45,7 +45,7 @@ export default function Page() {
                     <Button
                         variant="secondary"
                         size="lg"
-                        className="w-full gap-3 cursor-pointer border-[#E0E0E0] bg-[#F2F2F2] transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="w-full gap-3 cursor-pointer text-black border-[#E0E0E0] bg-[#F2F2F2] hover:bg-[#F2F2F2] transition-all duration-200 shadow-sm hover:shadow-md"
                         onClick={handleGoogleLogin}
                     >
                         <Image
