@@ -105,65 +105,84 @@ export async function POST(req: Request) {
             async start(controller) {
                 let fullText = "";
                 let fullReasoning = "";
+                let isClosed = false;
 
-                for await (const chunk of result.fullStream) {
-                    switch (chunk.type) {
-                        case "text-start":
-                            controller.enqueue(
-                                new TextEncoder().encode("<text-start>"),
-                            );
-                            break;
-                        case "text-end":
-                            controller.enqueue(
-                                new TextEncoder().encode("<text-end>"),
-                            );
+                // Helper function to save partial response
+                const savePartialResponse = async () => {
+                    if (fullText.length > 0 || fullReasoning.length > 0) {
+                        const content = `<reasoning-start>\n${fullReasoning}\n<reasoning-end>\n\n<text-start>\n${fullText}\n<text-end>`;
+                        try {
+                            const supabase = createClient();
+                            await supabase.rpc("add_message", {
+                                p_chat_id: chatId,
+                                p_sender_id: null,
+                                p_sender_role: "assistant",
+                                p_content: content,
+                                p_model_name: "gemini-2.5-pro",
+                            });
+                        } catch (err) {
+                            console.error("Error saving AI message to database:", err);
+                        }
+                    }
+                };
 
-                            // Save to DB
-                            const content =
-                                `<reasoning-start>\n${fullReasoning}\n<reasoning-end>\n\n<text-start>\n${fullText}\n<text-end>`;
-                            try {
-                                const supabase = createClient();
-                                await supabase.rpc("add_message", {
-                                    p_chat_id: chatId,
-                                    p_sender_id: null,
-                                    p_sender_role: "assistant",
-                                    p_content: content,
-                                    p_model_name: "gemini-2.5-pro",
-                                });
-                            } catch (err) {
-                                console.error(
-                                    "Error saving AI message to database:",
-                                    err,
+                try {
+                    for await (const chunk of result.fullStream) {
+                        if (isClosed) break;
+                        
+                        switch (chunk.type) {
+                            case "text-start":
+                                controller.enqueue(
+                                    new TextEncoder().encode("<text-start>"),
                                 );
-                            }
+                                break;
+                            case "text-end":
+                                controller.enqueue(
+                                    new TextEncoder().encode("<text-end>"),
+                                );
 
-                            controller.close();
-                            break;
-                        case "reasoning-start":
-                            controller.enqueue(
-                                new TextEncoder().encode("<reasoning-start>"),
-                            );
-                            break;
-                        case "reasoning-end":
-                            controller.enqueue(
-                                new TextEncoder().encode("<reasoning-end>"),
-                            );
-                            break;
-                        case "text-delta":
-                            fullText += chunk.text;
-                            controller.enqueue(
-                                new TextEncoder().encode(chunk.text),
-                            );
-                            break;
-                        case "reasoning-delta":
-                            fullReasoning += chunk.text;
-                            controller.enqueue(
-                                new TextEncoder().encode(chunk.text),
-                            );
-                            break;
+                                // Save complete response to DB
+                                await savePartialResponse();
+                                isClosed = true;
+                                controller.close();
+                                break;
+                            case "reasoning-start":
+                                controller.enqueue(
+                                    new TextEncoder().encode("<reasoning-start>"),
+                                );
+                                break;
+                            case "reasoning-end":
+                                controller.enqueue(
+                                    new TextEncoder().encode("<reasoning-end>"),
+                                );
+                                break;
+                            case "text-delta":
+                                fullText += chunk.text;
+                                controller.enqueue(
+                                    new TextEncoder().encode(chunk.text),
+                                );
+                                break;
+                            case "reasoning-delta":
+                                fullReasoning += chunk.text;
+                                controller.enqueue(
+                                    new TextEncoder().encode(chunk.text),
+                                );
+                                break;
+                        }
+                    }
+                } catch (err) {
+                    // Stream was likely aborted by client
+                    // console.log("Stream interrupted, saving partial response...");
+                    await savePartialResponse();
+                    if (!isClosed) {
+                        controller.close();
                     }
                 }
             },
+            cancel() {
+                // This is called when the client aborts the request
+                // console.log("Stream cancelled by client");
+            }
         });
 
         return new Response(responseStream, {

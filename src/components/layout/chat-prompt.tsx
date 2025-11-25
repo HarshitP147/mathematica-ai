@@ -17,6 +17,8 @@ import { Paperclip } from "lucide-react"
 
 type Props = {
     action?: (prevState: any, formData: FormData) => Promise<any>
+    isStreaming?: boolean
+    onStop?: () => void
 }
 
 
@@ -101,8 +103,10 @@ export default function ChatPromptInput(props: Props) {
 
                     <PromptInputAction className="justify-end" tooltip={false}>
                         <SubmitButton
-                            isLoading={pending}
+                            // @ts-ignore
+                            isLoading={pending || props.isStreaming}
                             hasContent={prompt.trim().length !== 0}
+                            onStop={props.onStop}
                         />
                     </PromptInputAction>
                 </PromptInputActions>

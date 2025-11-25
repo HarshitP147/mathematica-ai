@@ -1,8 +1,11 @@
 
+'use client'
+
 import { ChatContainerContent } from "@/components/ui/chat-container"
 import { Message } from "@/components/ui/message"
 import Response from "@/components/atom/response"
 import { Loader } from "@/components/ui/loader"
+import { motion, AnimatePresence } from "motion/react"
 
 
 type ChatDataType = Array<{
@@ -17,64 +20,90 @@ export default function Messages({ messageList, streamingContent, isWaitingForRe
 
     return (
         <ChatContainerContent className="my-8 pb-36">
-            {messageList && messageList.length > 0 ? (
-                <>
-                    {messageList.map((message) => (
-                        <div
-                            key={message.message_id}
-                            className={`flex w-full px-20 ${message.role === "user" ? "justify-end" : "justify-center"}`}
-                        >
-                            {message.role === "user" ? (
-                                <div className="group relative max-w-[75%] my-4  ml-auto">
-                                    <Message
-                                        role="user"
-                                        className="
-                                                animate-in fade-in-50 slide-in-from-bottom-2 duration-300
-                                                rounded-2xl px-4 py-3 shadow-sm
-                                                bg-primary text-primary-foreground rounded-br-sm
+            <AnimatePresence mode="popLayout" initial={false}>
+                {messageList && messageList.length > 0 ? (
+                    <div key="messages-container">
+                        {messageList.map((message, index) => (
+                            <motion.div
+                                key={message.message_id}
+                                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{
+                                    duration: 0.35,
+                                    ease: [0, 0.3772, 0.8604, 1]
+                                }}
+                                layout
+                                className={`flex w-full px-4 sm:px-8 md:px-20 ${message.role === "user" ? "justify-end" : "justify-center"}`}
+                            >
+                                {message.role === "user" ? (
+                                    <div className="group relative max-w-[85%] sm:max-w-[75%] my-3 ml-auto flex items-end gap-2">
+                                        <Message
+                                            role="user"
+                                            className="
+                                                rounded-2xl px-4 py-3 shadow-md
+                                                bg-primary text-primary-foreground rounded-br-md
+                                                hover:shadow-lg transition-shadow duration-200
                                                 "
-                                    >
-                                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                                            {message.content}
-                                        </div>
-                                    </Message>
+                                        >
+                                            <div className="prose prose-sm prose-invert max-w-none leading-relaxed">
+                                                {message.content}
+                                            </div>
+                                        </Message>
+                                        {/* <div className="hidden sm:flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                            {/* <User className="h-4 w-4" /> */}
+                                        {/* </div> */} 
+                                    </div>
+                                ) : (
+                                    <div className="group relative w-full">
+                                        <Response content={message.content} isStreaming={false} />
+                                    </div>
+                                )}
+                            </motion.div>
+                        ))}
+
+
+                        {isWaitingForResponse && !streamingContent && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3 }}
+                                className="flex justify-center px-4 sm:px-6"
+                            >
+                                <div className="mt-4 flex w-full max-w-xl items-center gap-4 rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm px-5 py-4 text-sm text-muted-foreground shadow-lg">
+                                    <Loader variant="typing" size="md" />
+                                    <div className="leading-tight">
+                                        <p className="font-medium text-foreground">Mathematica AI is thinking…</p>
+                                        <p className="text-xs text-muted-foreground">Waiting for the first response</p>
+                                    </div>
                                 </div>
-                            ) : (
-                                <div className="group relative w-full ">
-                                    <Response content={message.content} isStreaming={false} />
+                            </motion.div>
+                        )}
+
+
+                        {streamingContent && streamingContent.length > 0 && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex w-full px-4 sm:px-8 md:px-20 justify-center"
+                            >
+                                <div className="group relative w-full">
+                                    <Response content={streamingContent} isStreaming={true} />
                                 </div>
-                            )}
-                        </div>
-                    ))}
-
-
-                    {isWaitingForResponse && !streamingContent && (
-                        <div className="flex justify-center px-6">
-                            <div className="mt-6 flex w-full max-w-xl items-center gap-4 rounded-2xl border border-border/60 bg-muted/30 px-5 py-4 text-sm text-muted-foreground shadow-sm">
-                                <Loader variant="typing" size="md" />
-                                <div className="leading-tight">
-                                    <p className="font-medium text-foreground">Mathematica AI is thinking…</p>
-                                    <p className="text-xs text-muted-foreground">Waiting for the first response chunk</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-
-                    {streamingContent && streamingContent.length > 0 && (
-                        <div className="flex w-full px-20 justify-center">
-                            <div className="group relative w-full">
-                                <Response content={streamingContent} isStreaming={true} />
-                            </div>
-                        </div>
-                    )}
-                </>
-            ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                    <p>No messages yet. Start the conversation!</p>
-                </div>
-            )}
-
+                            </motion.div>
+                        )}
+                    </div>
+                ) : (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex items-center justify-center h-full text-muted-foreground"
+                    >
+                        <p>No messages yet. Start the conversation!</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </ChatContainerContent>
     )
 }

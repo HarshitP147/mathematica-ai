@@ -34,6 +34,15 @@ export default function ChatBody() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const initialPromptSent = useRef(false);
+    const abortControllerRef = useRef<AbortController | null>(null);
+
+    const handleStopGeneration = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+            setIsWaitingForResponse(false);
+        }
+    };
 
     useEffect(() => {
         // Any client-side effects can be handled here
@@ -59,12 +68,17 @@ export default function ChatBody() {
         setStreamingContent(""); // Clear previous streaming content
         setIsWaitingForResponse(true); // Show loading state until first chunk arrives
 
+        // Create new AbortController for this request
+        abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
+
         try {
             const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
+                signal,
                 body: JSON.stringify({
                     prompt: prompt,
                     includeThinking: includeThinking,
@@ -129,8 +143,23 @@ export default function ChatBody() {
                 }, 1000);
             }
         } catch (err) {
-            console.error("Error submitting prompt:", err);
+            if (err instanceof Error && err.name === 'AbortError') {
+                console.log('Generation stopped by user');
+                // Refresh messages to get any partial content that was saved
+                const { data, error } = await supabase
+                    .from("messages")
+                    .select('message_id, content, role, created_at')
+                    .eq('chat_id', slug);
+                if (!error && data) {
+                    setMsgList(data);
+                }
+            } else {
+                console.error("Error submitting prompt:", err);
+            }
             setIsWaitingForResponse(false);
+            setStreamingContent("");
+        } finally {
+            abortControllerRef.current = null;
         }
     }
 
@@ -175,12 +204,14 @@ export default function ChatBody() {
         <ChatContainerRoot >
             <Messages messageList={optimisticMessages} streamingContent={streamingContent} isWaitingForResponse={isWaitingForResponse} />
 
-
-
             <footer className="fixed bottom-0 left-0 right-0 px-4 py-4 bg-transparent">
                 <div className="max-w-4xl mx-auto relative">
                     <ScrollButton variant={"default"} className="absolute -top-16 left-1/2 -translate-x-1/2 z-30" />
-                    <ChatPromptInput action={handleSubmit} />
+                    <ChatPromptInput 
+                        action={handleSubmit} 
+                        isStreaming={isWaitingForResponse || streamingContent.length > 0}
+                        onStop={handleStopGeneration}
+                    />
                 </div>
             </footer>
 

@@ -25,8 +25,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-    title: "PCM Chat - Your AI assistant for learning science",
-    description: "AI assistant chat platform for learning science and beyond",
+    title: "Mathematica AI - Your AI assistant for learning mathematics",
+    description: "AI assistant chat platform for learning mathematics and beyond",
 };
 
 

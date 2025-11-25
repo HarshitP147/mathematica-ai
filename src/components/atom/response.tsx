@@ -126,14 +126,14 @@ export default function Response({ content, isStreaming = false, className }: Re
     }
 
     return (
-        <div className="flex w-full justify-start border border-border rounded-xl my-6  ">
+        <div className="flex w-full justify-start rounded-xl my-4">
             <div className="w-full max-w-full">
                 <div className="group relative">
                     <Message 
                         role="assistant" 
-                        className="rounded-xl px-4 py-3"
+                        className="rounded-2xl px-5 py-4 bg-card/30 backdrop-blur-sm border border-border/30 shadow-sm hover:shadow-md transition-shadow duration-200"
                     >
-                        <div className="flex flex-col gap-3 w-full">
+                        <div className="flex flex-col gap-4 w-full">
                             {/* Reasoning Section */}
                             {hasReasoning && reasoningSteps.length > 0 && (
                                 <Reasoning isStreaming={isStreaming && !hasText}>
@@ -176,16 +176,19 @@ export default function Response({ content, isStreaming = false, className }: Re
 
                             {/* Streaming indicator */}
                             {isStreaming && !hasReasoning && !hasText && (
-                                <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse [animation-delay:0.2s]" />
-                                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse [animation-delay:0.4s]" />
-                                    <span className="ml-2">Thinking...</span>
+                                <div className="flex items-center gap-3 text-muted-foreground text-sm py-2">
+                                    <div className="flex gap-1.5">
+                                        <div className="h-2.5 w-2.5 rounded-full bg-primary/80 animate-bounce [animation-delay:0ms]" />
+                                        <div className="h-2.5 w-2.5 rounded-full bg-primary/80 animate-bounce [animation-delay:150ms]" />
+                                        <div className="h-2.5 w-2.5 rounded-full bg-primary/80 animate-bounce [animation-delay:300ms]" />
+                                    </div>
+                                    <span className="text-foreground/70 font-medium">Generating response...</span>
                                 </div>
                             )}
                         </div>
                     </Message>
                 </div>
+
             </div>
         </div>
     )
