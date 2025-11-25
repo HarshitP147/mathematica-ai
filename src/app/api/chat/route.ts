@@ -3,7 +3,7 @@ import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { createClient } from "@/util/supabase/server";
 import { redirect } from "next/navigation";
 
-import { gemini25Pro } from "@/util/ai-sdk/index";
+import { gemini25Pro } from "@/lib/ai-sdk";
 
 export async function GET() {
     return redirect("/");

@@ -1,8 +1,8 @@
-
-
 'use client'
 
 import { useState, useEffect } from "react"
+// import { motion } from "motion/react"
+
 import { Message } from "@/components/ui/message"
 import {
     ChainOfThought,
@@ -14,6 +14,9 @@ import {
 import { Reasoning, ReasoningTrigger, ReasoningContent } from "@/components/ui/reasoning"
 import { Markdown } from "../ui/markdown"
 
+import { splitReasoningSteps } from "@/util/response/splitReasoning"
+import { parseResponse } from "@/util/response/parseResponse"
+
 type ResponseProps = {
     content: string
     isStreaming?: boolean
@@ -23,89 +26,6 @@ type ResponseProps = {
 type ParsedResponse = {
     reasoning: string
     text: string
-}
-
-/**
- * Parses the response format from test.txt:
- * <reasoning-start>...<reasoning-end><text-start>...<text-end>
- * 
- * Handles both complete and streaming (partial) content
- */
-function parseResponse(content: string): ParsedResponse {
-    // Check for reasoning section - handle both complete and streaming
-    let reasoning = ""
-    const reasoningStartIndex = content.indexOf("<reasoning-start>")
-    const reasoningEndIndex = content.indexOf("<reasoning-end>")
-    
-    if (reasoningStartIndex !== -1) {
-        const reasoningContent = reasoningEndIndex !== -1
-            ? content.substring(reasoningStartIndex + 17, reasoningEndIndex) // Complete reasoning
-            : content.substring(reasoningStartIndex + 17) // Streaming reasoning (no end tag yet)
-        reasoning = reasoningContent.trim()
-    }
-    
-    // Check for text section - handle both complete and streaming
-    let text = ""
-    const textStartIndex = content.indexOf("<text-start>")
-    const textEndIndex = content.indexOf("<text-end>")
-    
-    if (textStartIndex !== -1) {
-        const textContent = textEndIndex !== -1
-            ? content.substring(textStartIndex + 12, textEndIndex) // Complete text
-            : content.substring(textStartIndex + 12) // Streaming text (no end tag yet)
-        text = textContent.trim()
-    }
-
-    return {
-        reasoning,
-        text
-    }
-}
-
-/**
- * Splits reasoning text into steps based on bold headers (markdown **Title**)
- * Each step contains a title and its associated content
- * Handles streaming content - can process incomplete steps
- */
-function splitReasoningSteps(reasoning: string): Array<{ title: string; content: string }> {
-    if (!reasoning) return []
-    
-    // Split by lines that start with ** (bold markdown headers)
-    const lines = reasoning.split('\n')
-    const steps: Array<{ title: string; content: string }> = []
-    let currentTitle = ''
-    let currentContent: string[] = []
-    
-    for (const line of lines) {
-        // Check if line is a bold header (starts and ends with **)
-        const titleMatch = line.match(/^\*\*(.*?)\*\*$/)
-        
-        if (titleMatch) {
-            // Save previous step if exists
-            if (currentTitle) {
-                steps.push({
-                    title: currentTitle,
-                    content: currentContent.join('\n').trim()
-                })
-            }
-            // Start new step
-            currentTitle = titleMatch[1].trim()
-            currentContent = []
-        } else if (line.trim()) {
-            // Add content to current step
-            currentContent.push(line)
-        }
-    }
-    
-    // Don't forget the last step (even if incomplete during streaming)
-    if (currentTitle) {
-        steps.push({
-            title: currentTitle,
-            content: currentContent.join('\n').trim()
-        })
-    }
-    
-    return steps
 }
 
 export default function Response({ content, isStreaming = false, className }: ResponseProps) {
@@ -129,8 +49,8 @@ export default function Response({ content, isStreaming = false, className }: Re
         <div className="flex w-full justify-start rounded-xl my-4">
             <div className="w-full max-w-full">
                 <div className="group relative">
-                    <Message 
-                        role="assistant" 
+                    <Message
+                        role="assistant"
                         className="rounded-2xl px-5 py-4 bg-card/30 backdrop-blur-sm border border-border/30 shadow-sm hover:shadow-md transition-shadow duration-200"
                     >
                         <div className="flex flex-col gap-4 w-full">

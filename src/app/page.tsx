@@ -21,16 +21,16 @@ export default async function Home() {
 
     return (
         <>
-            {(isSignedIn) && <SidebarTrigger className=" ml-3 justify-start hover:cursor-pointer p-4 rounded-full" />}
+            {(isSignedIn) && <SidebarTrigger className="ml-3 justify-start hover:cursor-pointer p-4 rounded-full" />}
             <Empty>
                 <EmptyContent>
                     <EmptyTitle>
-                        <h1 className='text-4xl font-bold text-nowrap'>
+                        <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold text-center'>
                             Welcome to Mathematica AI!
                         </h1>
                     </EmptyTitle>
-                    <p className='text-lg text-foreground'>Your AI chat assistant.</p>
-                    <div className='mb-4 w-[200%]'>
+                    <p className='text-base sm:text-lg text-foreground text-center'>Your AI chat assistant.</p>
+                    <div className='mb-4 w-full max-w-2xl px-4 sm:px-0'>
                         <ChatPromptInput action={createNewChatAction} />
                     </div>
                 </EmptyContent>

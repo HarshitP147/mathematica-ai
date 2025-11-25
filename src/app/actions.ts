@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { generateText } from "ai";
 
-import { gemini25Flash } from "@/util/ai-sdk/index";
+import { gemini25Flash } from "@/lib/ai-sdk";
 import { createClient } from "@/util/supabase/server";
 
 export async function createNewChatAction(state: any, formData: FormData) {
