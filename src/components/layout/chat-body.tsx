@@ -99,7 +99,7 @@ export default function ChatBody() {
                 setIsWaitingForResponse(false);
                 return;
             }
-
+                    
             const reader = response.body.getReader();
             const decoder = new TextDecoder("utf-8");
             let hasReceivedChunk = false;

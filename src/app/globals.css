@@ -120,3 +120,63 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* KaTeX math styling - prevent any styling from affecting math */
+.katex,
+.katex-display,
+.math,
+.math-inline,
+.math-display,
+span.katex,
+span.katex-mathml,
+.katex-html {
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+}
+
+/* Target all elements inside KaTeX containers */
+.katex *,
+.katex-display *,
+.katex-html * {
+    background: transparent !important;
+}
+
+.katex code,
+.katex-display code,
+code.language-math,
+.math code,
+.math-inline code,
+.math-display code {
+    background: transparent !important;
+    padding: 0 !important;
+    font-family: inherit !important;
+    border-radius: 0 !important;
+}
+
+/* Ensure KaTeX text inherits proper color */
+.katex {
+    color: inherit;
+}
+
+.katex-display {
+    margin: 1em 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* Override prose code styling inside KaTeX */
+.prose .katex code,
+.prose .katex-display code,
+.prose :where(.katex):not(:where([class~="not-prose"], [class~="not-prose"] *)) code {
+    background: transparent !important;
+    padding: 0 !important;
+    font-weight: inherit !important;
+    color: inherit !important;
+}
+
+/* Style inline code that's NOT inside KaTeX - make it more subtle */
+.prose code:not(.katex code):not(.katex-display code)::before,
+.prose code:not(.katex code):not(.katex-display code)::after {
+    content: none !important;
+}

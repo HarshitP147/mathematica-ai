@@ -4,6 +4,8 @@ import { memo, useId, useMemo } from "react"
 import ReactMarkdown, { Components } from "react-markdown"
 import remarkBreaks from "remark-breaks"
 import remarkGfm from "remark-gfm"
+import rehypeKatex from "rehype-katex"
+import remarkMath from "remark-math"
 import { CodeBlock, CodeBlockCode } from "./code-block"
 
 export type MarkdownProps = {
@@ -26,21 +28,31 @@ function extractLanguage(className?: string): string {
 
 const INITIAL_COMPONENTS: Partial<Components> = {
   code: function CodeComponent({ className, children, ...props }) {
+    // Skip styling for KaTeX math expressions (they have language-math class)
+    const isMath = className?.includes("language-math") || className?.includes("math")
+    if (isMath) {
+      return (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      )
+    }
+
     const isInline =
       !props.node?.position?.start.line ||
       props.node?.position?.start.line === props.node?.position?.end.line
 
     if (isInline) {
       return (
-        <span
+        <code
           className={cn(
-            "bg-primary-foreground rounded-sm px-1 font-mono text-sm",
+            "bg-muted/50 dark:bg-muted/30 text-foreground rounded-sm px-1.5 py-0.5 font-mono text-sm",
             className
           )}
           {...props}
         >
           {children}
-        </span>
+        </code>
       )
     }
 
@@ -67,7 +79,8 @@ const MemoizedMarkdownBlock = memo(
   }) {
     return (
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkBreaks]}
+        remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
         components={components}
       >
         {content}

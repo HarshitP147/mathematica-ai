@@ -88,7 +88,7 @@ export default function Response({ content, isStreaming = false, className }: Re
                             {/* Main Text Response */}
                             {hasText && (
                                 <div className="prose prose-sm dark:prose-invert max-w-none">
-                                    <Markdown>
+                                    <Markdown className="text-">
                                         {parsed.text}
                                     </Markdown>
                                 </div>
