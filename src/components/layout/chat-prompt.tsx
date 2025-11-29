@@ -37,17 +37,21 @@ export default function ChatPromptInput(props: Props) {
         }
 
         const chatId = slug ?? "/";
+        const currentPrompt = prompt; // Capture current prompt before clearing
+        
+        // Clear the prompt immediately for instant feedback
+        setPrompt("");
 
         startTransition(() => {
             // @ts-ignore
-            const form = (event.currentTarget.form);
+            const form = (event.currentTarget?.form);
             // append the chatId to the form data if it exists
 
             if (form) {
                 const formData = new FormData(form);
+                formData.set("prompt", currentPrompt); // Use captured prompt since state is cleared
                 formData.append("chatId", chatId as string)
                 formAction(formData)
-                setPrompt(""); // Clear the prompt after submission
             }
         });
     }

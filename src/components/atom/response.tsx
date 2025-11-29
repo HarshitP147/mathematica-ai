@@ -51,7 +51,7 @@ export default function Response({ content, isStreaming = false, className }: Re
                 <div className="group relative">
                     <Message
                         role="assistant"
-                        className="rounded-2xl px-5 py-4 bg-card/30 backdrop-blur-sm border border-border/30 shadow-sm hover:shadow-md transition-shadow duration-200"
+                        className="rounded-2xl px-5 py-4 bg-card/30 backdrop-blur-sm  transition-shadow duration-200"
                     >
                         <div className="flex flex-col gap-4 w-full">
                             {/* Reasoning Section */}
