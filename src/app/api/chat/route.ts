@@ -74,22 +74,26 @@ export async function POST(req: Request) {
     }
 
     try {
-        // now generate the AI response as a stream
-        const result = streamText({ // model: google("gemini-2.5-pro"),
-            model: gemini25Pro,
-            // prompt: prompt,
-            system:
-                "You are a helpful assistant but you are not allowed to use the word 'Computer' in your responses.",
+        // Use default model
+        const selectedModel = gemini25Pro;
+        const isGoogleModel = true;
+
+        // Configure provider options for Google models
+        const providerOptions = {
+            google: {
+                thinkingConfig: {
+                    includeThoughts: includeThinking,
+                    thinkingBudget: 16284,
+                },
+            } satisfies GoogleGenerativeAIProviderOptions,
+        };
+
+        // Generate the AI response as a stream
+        const result = streamText({
+            model: selectedModel,
+            system: "You are a helpful assistant but you are not allowed to use the word 'Computer' in your responses.",
             messages: allMessages,
-            
-            providerOptions: {
-                google: {
-                    thinkingConfig: {
-                        includeThoughts: includeThinking,
-                        thinkingBudget: 16284,
-                    },
-                } satisfies GoogleGenerativeAIProviderOptions,
-            },
+            providerOptions,
             onChunk: ({ chunk }) => {
                 if (chunk.type === "source") {
                     console.log(chunk);
@@ -110,7 +114,9 @@ export async function POST(req: Request) {
                 // Helper function to save partial response
                 const savePartialResponse = async () => {
                     if (fullText.length > 0 || fullReasoning.length > 0) {
-                        const content = `<reasoning-start>\n${fullReasoning}\n<reasoning-end>\n\n<text-start>\n${fullText}\n<text-end>`;
+                        const content = isGoogleModel 
+                            ? `<reasoning-start>\n${fullReasoning}\n<reasoning-end>\n\n<text-start>\n${fullText}\n<text-end>`
+                            : `<text-start>\n${fullText}\n<text-end>`;
                         try {
                             const supabase = createClient();
                             await supabase.rpc("add_message", {
@@ -147,14 +153,20 @@ export async function POST(req: Request) {
                                 controller.close();
                                 break;
                             case "reasoning-start":
-                                controller.enqueue(
-                                    new TextEncoder().encode("<reasoning-start>"),
-                                );
+                                // Only include reasoning for Google models
+                                if (isGoogleModel) {
+                                    controller.enqueue(
+                                        new TextEncoder().encode("<reasoning-start>"),
+                                    );
+                                }
                                 break;
                             case "reasoning-end":
-                                controller.enqueue(
-                                    new TextEncoder().encode("<reasoning-end>"),
-                                );
+                                // Only include reasoning for Google models
+                                if (isGoogleModel) {
+                                    controller.enqueue(
+                                        new TextEncoder().encode("<reasoning-end>"),
+                                    );
+                                }
                                 break;
                             case "text-delta":
                                 fullText += chunk.text;

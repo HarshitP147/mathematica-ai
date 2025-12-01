@@ -38,7 +38,7 @@ export default function ChatPromptInput(props: Props) {
 
         const chatId = slug ?? "/";
         const currentPrompt = prompt; // Capture current prompt before clearing
-        
+
         // Clear the prompt immediately for instant feedback
         setPrompt("");
 
@@ -67,12 +67,20 @@ export default function ChatPromptInput(props: Props) {
         <form action={formAction}>
 
             <PromptInput
-                className="w-full bg-transparent backdrop-blur-lg dark:backdrop-blur-3xl  "
+                className="w-full bg-transparent backdrop-blur-lg dark:backdrop-blur-3xl max-w-4xl mx-auto"
                 value={prompt}
                 onSubmit={undefined}  // Disable built-in Enter submit
                 isLoading={pending}
+                maxHeight={320}
             >
 
+                <PromptInputTextarea
+                    placeholder="Ask me anything..."
+                    onKeyDown={handleKeyDown}
+                    name="prompt"
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="text-foreground dark:bg-transparent dark:backdrop-blur-3xl" />
 
 
                 <PromptInputActions className="w-full items-center justify-between ">
@@ -91,18 +99,8 @@ export default function ChatPromptInput(props: Props) {
                                 <IncludeThinking includeThinking={includeThinking} />
                             </Button>
                         </PromptInputAction>
+
                     </div>
-
-
-
-                    <PromptInputTextarea
-                        placeholder="Ask me anything..."
-                        onKeyDown={handleKeyDown}
-                        name="prompt"
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        className="text-foreground dark:bg-transparent dark:backdrop-blur-3xl" />
-
 
 
                     <PromptInputAction className="justify-end" tooltip={false}>

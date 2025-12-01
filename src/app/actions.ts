@@ -22,7 +22,7 @@ export async function createNewChatAction(state: any, formData: FormData) {
     // generate a chat name based on the prompt
 
     const aiResponse = await generateText({
-        model: gemini25Flash,
+        model: gemini25Flash, // Use Google model for chat name generation
         system: "You are a helpful assistant that generates chat names.",
         prompt:
             `Generate a concise and descriptive chat name for the following prompt, in less than 5 words:\n\n"${prompt}"\n\nChat Name:`,

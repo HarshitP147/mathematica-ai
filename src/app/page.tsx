@@ -14,7 +14,7 @@ export default async function Home() {
     // server-side check for authenticated user
     let isSignedIn = (await supabase.auth.getUser()).data.user !== null;
 
-    if(!isSignedIn) {
+    if (!isSignedIn) {
         redirect('/auth');
     }
 
@@ -30,7 +30,7 @@ export default async function Home() {
                         </h1>
                     </EmptyTitle>
                     <p className='text-base sm:text-lg text-foreground text-center'>Your AI chat assistant.</p>
-                    <div className='mb-4 w-full max-w-2xl px-4 sm:px-0'>
+                    <div className='mb-4 w-fit lg:w-[180%] px-4 sm:px-0'>
                         <ChatPromptInput action={createNewChatAction} />
                     </div>
                 </EmptyContent>

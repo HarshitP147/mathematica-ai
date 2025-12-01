@@ -64,7 +64,7 @@ export default function ChatBody() {
 
     }, [slug]);
 
-    async function streamResponse(prompt: string, includeThinking: boolean, chatId: string, skipUserMessage: boolean = false) {
+    async function streamResponse(prompt: string, includeThinking: boolean, chatId: string, model: string = "gemini-2.5-pro", skipUserMessage: boolean = false) {
         setStreamingContent(""); // Clear previous streaming content
         setIsWaitingForResponse(true); // Show loading state until first chunk arrives
 
@@ -84,6 +84,7 @@ export default function ChatBody() {
                     includeThinking: includeThinking,
                     chatId: chatId,
                     messages: msgList,
+                    model: model,
                     skipUserMessage: skipUserMessage
                 })
             });
@@ -176,7 +177,7 @@ export default function ChatBody() {
             router.replace(`/chat/${slug}`, { scroll: false });
 
             // Send the initial prompt (skipUserMessage = true since it's already in DB)
-            streamResponse(decodeURIComponent(initialPrompt), includeThinking, slug as string, true);
+            streamResponse(decodeURIComponent(initialPrompt), includeThinking, slug as string, "gemini-2.5-pro", true);
         }
     }, [searchParams, slug, router]);
 
@@ -184,6 +185,7 @@ export default function ChatBody() {
         const prompt = formData.get("prompt") as string;
         const includeThinking = formData.get("includeThinking") === "true";
         const chatId = formData.get("chatId") as string;
+        const model = formData.get("model") as string || "gemini-2.5-pro";
 
         // Set loading state immediately for instant feedback
         setIsWaitingForResponse(true);
@@ -197,7 +199,7 @@ export default function ChatBody() {
         };
         addOptimisticMessage(optimisticUserMessage);
 
-        await streamResponse(prompt, includeThinking, chatId, false);
+        await streamResponse(prompt, includeThinking, chatId, model, false);
     }
 
     return (
