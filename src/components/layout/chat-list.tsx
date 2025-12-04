@@ -17,7 +17,7 @@ interface Chat {
 export default function ChatList({ list }: { list: Chat[] }) {
     return (
         <AlertDialog>
-            <AnimatePresence initial={false} mode="popLayout">
+            <AnimatePresence mode="sync">
                 {list.map((chat) => {
                     return <ChatLink key={chat.chat_id} chatId={chat.chat_id} name={chat.chat_info.chat_name} />;
                 })}

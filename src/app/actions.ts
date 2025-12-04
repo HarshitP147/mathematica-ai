@@ -30,8 +30,6 @@ export async function createNewChatAction(state: any, formData: FormData) {
 
     const chatName = aiResponse.text.trim();
 
-    console.log("AI Response for chat name:", chatName);
-
     const { data: chatId, error: rpcError } = await supabase.rpc(
         "create_chat",
         {
@@ -45,6 +43,27 @@ export async function createNewChatAction(state: any, formData: FormData) {
         throw new Error("Failed to create new chat");
     }
 
+    const files = formData.getAll("files") as File[];
+    let storageIds = [];
+
+    for (const file of files) {
+        const { data: storageData, error: storageError } = await supabase
+            .storage
+            .from("chat-media")
+            .upload(`${userData.user.id}/${chatId}/${file.name}`, file, {
+                cacheControl: "3600",
+                upsert: false,
+                contentType: file.type,
+            });
+
+        if (storageError) {
+            console.error("Error uploading file:", storageError);
+            throw new Error("Failed to upload file");
+        }
+
+        storageIds.push(storageData.id);
+    }
+
     // add the new message as the first message in the chat
     const { data: messageInfo, error: messageAddError } = await supabase.rpc(
         "add_message",
@@ -54,6 +73,7 @@ export async function createNewChatAction(state: any, formData: FormData) {
             p_sender_role: "user",
             p_content: prompt,
             p_model_name: null,
+            p_msg_media: storageIds,
         },
     );
 

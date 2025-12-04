@@ -25,7 +25,7 @@ export default async function Home() {
             <Empty>
                 <EmptyContent>
                     <EmptyTitle>
-                        <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold text-center'>
+                        <h1 className='text-2xl sm:text-3xl md:text-4xl lg:text-nowrap font-bold text-center'>
                             Welcome to Mathematica AI!
                         </h1>
                     </EmptyTitle>
