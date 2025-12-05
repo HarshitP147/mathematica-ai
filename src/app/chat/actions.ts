@@ -1,3 +1,4 @@
+"use server";
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/util/supabase/server";
@@ -18,7 +19,6 @@ export async function addMessageWithMediaAction(formData: FormData) {
     let storageIds = [];
 
     for (const file of files) {
-        console.log(file);
         const { data: storageData, error: storageError } = await supabase
             .storage
             .from("chat-media")
@@ -32,7 +32,7 @@ export async function addMessageWithMediaAction(formData: FormData) {
             console.error("Error uploading file:", storageError);
             throw new Error("Failed to upload file");
         }
-        storageIds.push(storageData.id);
+        storageIds.push(storageData.fullPath);
     }
 
     // add the new message with media
@@ -53,9 +53,10 @@ export async function addMessageWithMediaAction(formData: FormData) {
         throw new Error("Failed to add message with media");
     }
 
-    revalidatePath("/chat");
+    revalidatePath(`/chat/${chatId}`);
 
     return {
-        messageInfo,
+        status: 201,
+        message: "prompt added successfully",
     };
 }

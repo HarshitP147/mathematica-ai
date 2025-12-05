@@ -33,7 +33,7 @@ export default function ChatPromptInput(props: Props) {
     const [files, setFiles] = useState<File[]>([]);
     const { slug } = useParams();
 
-    const [state, formAction, pending] = useActionState(props.action!, { prompt: "", includeThinking: false });
+    const [state, formAction, pending] = useActionState(props.action!, { prompt: "", includeThinking: false, files: [] });
 
     const handleFilesAdded = (newFiles: File[]) => {
         setFiles(prev => [...prev, ...newFiles]);
@@ -46,20 +46,21 @@ export default function ChatPromptInput(props: Props) {
     async function handleSubmit(event: React.FormEvent) {
         event?.preventDefault();
 
-        if (prompt.length === 0 && files.length === 0) {
+        if (prompt.trim().length === 0 && files.length === 0) {
             return;
         }
 
         const chatId = slug ?? "/";
         const currentPrompt = prompt; // Capture current prompt before clearing
+        const currentFiles = files; // Capture current files before clearing
 
-        // Clear the prompt immediately for instant feedback
+        // Clear the prompt and files immediately for instant feedback
         setPrompt("");
+        setFiles([]);
 
         startTransition(() => {
             // @ts-ignore
             const form = (event.currentTarget?.form);
-            // append the chatId to the form data if it exists
 
             if (form) {
                 const formData = new FormData(form);
@@ -70,12 +71,11 @@ export default function ChatPromptInput(props: Props) {
                     formData.append("includeThinking", "true");
                 }
 
-                if (files.length > 0) {
-                    for (const file of files) {
+                if (currentFiles.length > 0) {
+                    for (const file of currentFiles) {
                         formData.append("files", file);
                     }
                 }
-
 
                 formAction(formData)
             }
@@ -155,7 +155,8 @@ export default function ChatPromptInput(props: Props) {
                         <PromptInputAction className="justify-end" tooltip={false}>
                             <SubmitButton
                                 // @ts-ignore
-                                isLoading={pending || props.isStreaming}
+                                isSubmitting={pending}
+                                isGenerating={props.isStreaming || false}
                                 hasContent={prompt.trim().length !== 0 || files.length > 0}
                                 onStop={props.onStop}
                             />

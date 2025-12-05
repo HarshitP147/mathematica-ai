@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef, useOptimistic } from "react"
+import { useState, useEffect, useRef, } from "react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 
 import { ChatContainerRoot } from "@/components/ui/chat-container"
@@ -8,6 +8,8 @@ import ChatPromptInput from "@/components/layout/chat-prompt"
 import Messages from "@/components/layout/messages"
 
 import { createClient } from "@/util/supabase/client"
+
+import { addMessageWithMediaAction } from "@/app/chat/actions"
 
 
 const supabase = createClient()
@@ -27,10 +29,8 @@ export default function ChatBody() {
     const [msgList, setMsgList] = useState<ChatDataType>([]);
     const [streamingContent, setStreamingContent] = useState<string>("");
     const [isWaitingForResponse, setIsWaitingForResponse] = useState<boolean>(false);
-    const [optimisticMessages, addOptimisticMessage] = useOptimistic(
-        msgList || [],
-        (state: ChatMessage[], newMessage: ChatMessage) => [...state, newMessage]
-    );
+
+
     const { slug } = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -55,7 +55,6 @@ export default function ChatBody() {
                 if (error) {
                     console.error("Error loading messages:", error);
                 } else {
-                    console.log("Loaded messages:", data);
                     setMsgList(data);
                 }
             });
@@ -166,45 +165,64 @@ export default function ChatBody() {
     }
 
     // Handle initial prompt from URL
-    // useEffect(() => {
-    //     const initialPrompt = searchParams.get('initialPrompt');
-    //     const includeThinkingParam = searchParams.get('includeThinking');
-    //     const includeThinking = includeThinkingParam === 'true';
+    useEffect(() => {
+        const includeThinkingParam = searchParams.get('includeThinking');
+        const includeThinking = includeThinkingParam === 'true';
 
-    //     if (initialPrompt && !initialPromptSent.current && slug) {
-    //         initialPromptSent.current = true;
+        if (!initialPromptSent.current && slug) {
+            initialPromptSent.current = true;
 
-    //         // Remove the query parameter from URL
-    //         router.replace(`/chat/${slug}`, { scroll: false });
+            // Remove the query parameter from URL
+            router.replace(`/chat/${slug}`, { scroll: false });
 
-    //         // Send the initial prompt (skipUserMessage = true since it's already in DB)
-    //         streamResponse(decodeURIComponent(initialPrompt), includeThinking, slug as string, "gemini-2.5-pro", true);
-    //     }
-    // }, [searchParams, slug, router]);
+            // Send the initial prompt (skipUserMessage = true since it's already in DB)
+            // streamResponse('', includeThinking, slug as string, "gemini-2.5-pro", true);
+        }
+    }, [searchParams, slug, router]);
 
     async function handleSubmit(prevState: any, formData: FormData) {
         const prompt = formData.get("prompt") as string;
         const includeThinking = formData.get("includeThinking") === "true";
         const chatId = formData.get("chatId") as string;
 
-        // Set loading state immediately for instant feedback
-        setIsWaitingForResponse(true);
+        try {
+            // Set loading state immediately for instant feedback
+            setIsWaitingForResponse(true);
 
-        // // Add optimistic user message
-        // const optimisticUserMessage: ChatMessage = {
-        //     message_id: `temp-${Date.now()}`,
-        //     content: prompt,
-        //     role: "user",
-        //     created_at: new Date().toISOString()
-        // };
-        // addOptimisticMessage(optimisticUserMessage);
+            // Store message with media to database
+            const { status } = await addMessageWithMediaAction(formData);
 
-        // await streamResponse(prompt, includeThinking, chatId, false);
+            if (status !== 201) {
+                throw new Error("Failed to add message with media");
+            }
+
+            // Refresh messages immediately so the new prompt appears without a full reload
+            const { data, error } = await supabase
+                .from("messages")
+                .select('message_id, content, role, created_at, msg_media')
+                .eq('chat_id', chatId)
+                .order('created_at', { ascending: true });
+
+            if (!error && data) {
+                setMsgList(data);
+            }
+
+            // Trigger a soft refresh to keep server components in sync
+            router.refresh();
+
+            setIsWaitingForResponse(false);
+
+            // After successful storage, you can re-enable streaming if desired
+            // await streamResponse(prompt, includeThinking, chatId, true);
+        } catch (error) {
+            console.error("Error in handleSubmit:", error);
+            setIsWaitingForResponse(false);
+        }
     }
 
     return (
         <ChatContainerRoot >
-            <Messages messageList={optimisticMessages} streamingContent={streamingContent} isWaitingForResponse={isWaitingForResponse} />
+            <Messages messageList={msgList} streamingContent={streamingContent} isWaitingForResponse={isWaitingForResponse} />
 
             <footer className="fixed bottom-0 left-0 right-0 px-4 py-4 bg-transparent">
                 <div className="max-w-4xl mx-auto relative">
