@@ -17,6 +17,7 @@ type ChatMessage = {
     content: string;
     role: string;
     created_at: string;
+    msg_media?: string[]; // Optional array of media IDs
 };
 
 type ChatDataType = Array<ChatMessage> | null;
@@ -48,12 +49,13 @@ export default function ChatBody() {
         // Any client-side effects can be handled here
 
         supabase.from("messages")
-            .select('message_id, content, role, created_at')
+            .select('message_id, content, role, created_at, msg_media')
             .eq('chat_id', slug)
             .then(({ data, error }) => {
                 if (error) {
                     console.error("Error loading messages:", error);
                 } else {
+                    console.log("Loaded messages:", data);
                     setMsgList(data);
                 }
             });
@@ -133,7 +135,7 @@ export default function ChatBody() {
                 setTimeout(async () => {
                     const { data, error } = await supabase
                         .from("messages")
-                        .select('message_id, content, role, created_at')
+                        .select('message_id, content, role, created_at, msg_media')
                         .eq('chat_id', slug)
 
                     if (!error && data) {
@@ -149,7 +151,7 @@ export default function ChatBody() {
                 // Refresh messages to get any partial content that was saved
                 const { data, error } = await supabase
                     .from("messages")
-                    .select('message_id, content, role, created_at')
+                    .select('message_id, content, role, created_at, msg_media')
                     .eq('chat_id', slug);
                 if (!error && data) {
                     setMsgList(data);

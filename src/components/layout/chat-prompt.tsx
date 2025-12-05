@@ -171,7 +171,7 @@ export default function ChatPromptInput(props: Props) {
                     <Paperclip className="h-10 w-10 text-primary" />
                     <p className="text-lg font-medium">Drop files here</p>
                     <p className="text-sm text-muted-foreground">
-                        Images, PDFs, text files, and more
+                        Images, PDFs, text files, and more (15 MB max for each file)
                     </p>
                 </div>
             </FileUploadContent>
