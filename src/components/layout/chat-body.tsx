@@ -66,7 +66,7 @@ export default function ChatBody() {
 
     }, [slug]);
 
-    async function streamResponse(prompt: string, includeThinking: boolean, chatId: string, model: string = "gemini-2.5-pro", skipUserMessage: boolean = false) {
+    async function streamResponse(prompt: string, includeThinking: boolean, chatId: string, skipUserMessage: boolean = false) {
         setStreamingContent(""); // Clear previous streaming content
         setIsWaitingForResponse(true); // Show loading state until first chunk arrives
 
@@ -86,7 +86,6 @@ export default function ChatBody() {
                     includeThinking: includeThinking,
                     chatId: chatId,
                     messages: msgList,
-                    model: model,
                     skipUserMessage: skipUserMessage
                 })
             });
@@ -102,7 +101,7 @@ export default function ChatBody() {
                 setIsWaitingForResponse(false);
                 return;
             }
-                    
+
             const reader = response.body.getReader();
             const decoder = new TextDecoder("utf-8");
             let hasReceivedChunk = false;
@@ -167,41 +166,40 @@ export default function ChatBody() {
     }
 
     // Handle initial prompt from URL
-    useEffect(() => {
-        const initialPrompt = searchParams.get('initialPrompt');
-        const includeThinkingParam = searchParams.get('includeThinking');
-        const includeThinking = includeThinkingParam === 'true';
+    // useEffect(() => {
+    //     const initialPrompt = searchParams.get('initialPrompt');
+    //     const includeThinkingParam = searchParams.get('includeThinking');
+    //     const includeThinking = includeThinkingParam === 'true';
 
-        if (initialPrompt && !initialPromptSent.current && slug) {
-            initialPromptSent.current = true;
+    //     if (initialPrompt && !initialPromptSent.current && slug) {
+    //         initialPromptSent.current = true;
 
-            // Remove the query parameter from URL
-            router.replace(`/chat/${slug}`, { scroll: false });
+    //         // Remove the query parameter from URL
+    //         router.replace(`/chat/${slug}`, { scroll: false });
 
-            // Send the initial prompt (skipUserMessage = true since it's already in DB)
-            streamResponse(decodeURIComponent(initialPrompt), includeThinking, slug as string, "gemini-2.5-pro", true);
-        }
-    }, [searchParams, slug, router]);
+    //         // Send the initial prompt (skipUserMessage = true since it's already in DB)
+    //         streamResponse(decodeURIComponent(initialPrompt), includeThinking, slug as string, "gemini-2.5-pro", true);
+    //     }
+    // }, [searchParams, slug, router]);
 
     async function handleSubmit(prevState: any, formData: FormData) {
         const prompt = formData.get("prompt") as string;
         const includeThinking = formData.get("includeThinking") === "true";
         const chatId = formData.get("chatId") as string;
-        const model = formData.get("model") as string || "gemini-2.5-pro";
 
         // Set loading state immediately for instant feedback
         setIsWaitingForResponse(true);
 
-        // Add optimistic user message
-        const optimisticUserMessage: ChatMessage = {
-            message_id: `temp-${Date.now()}`,
-            content: prompt,
-            role: "user",
-            created_at: new Date().toISOString()
-        };
-        addOptimisticMessage(optimisticUserMessage);
+        // // Add optimistic user message
+        // const optimisticUserMessage: ChatMessage = {
+        //     message_id: `temp-${Date.now()}`,
+        //     content: prompt,
+        //     role: "user",
+        //     created_at: new Date().toISOString()
+        // };
+        // addOptimisticMessage(optimisticUserMessage);
 
-        await streamResponse(prompt, includeThinking, chatId, model, false);
+        // await streamResponse(prompt, includeThinking, chatId, false);
     }
 
     return (
@@ -211,8 +209,8 @@ export default function ChatBody() {
             <footer className="fixed bottom-0 left-0 right-0 px-4 py-4 bg-transparent">
                 <div className="max-w-4xl mx-auto relative">
                     <ScrollButton variant={"default"} className="absolute -top-16 left-1/2 -translate-x-1/2 z-30" />
-                    <ChatPromptInput 
-                        action={handleSubmit} 
+                    <ChatPromptInput
+                        action={handleSubmit}
                         isStreaming={isWaitingForResponse || streamingContent.length > 0}
                         onStop={handleStopGeneration}
                     />
