@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { v4 } from "uuid";
 
 import { createClient } from "@/util/supabase/server";
 
@@ -19,10 +20,14 @@ export async function addMessageWithMediaAction(formData: FormData) {
     let storageIds = [];
 
     for (const file of files) {
+        const objectId = v4();
+
+        const fileName = `${objectId}-${file.name}`;
+
         const { data: storageData, error: storageError } = await supabase
             .storage
             .from("chat-media")
-            .upload(`${userData.user.id}/${chatId}/${file.name}`, file, {
+            .upload(`${userData.user.id}/${chatId}/${fileName}`, file, {
                 cacheControl: "3600",
                 upsert: false,
                 contentType: file.type,

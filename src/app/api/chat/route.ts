@@ -1,4 +1,11 @@
-import { streamText } from "ai";
+import {
+    FilePart,
+    ImagePart,
+    type ModelMessage,
+    streamText,
+    TextPart,
+    TypeValidationError,
+} from "ai";
 import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { createClient } from "@/util/supabase/server";
 import { redirect } from "next/navigation";
@@ -9,18 +16,14 @@ export async function GET() {
     return redirect("/");
 }
 
+type MessageContentPart = string | Array<TextPart | ImagePart | FilePart>;
+
 export async function POST(req: Request) {
     const {
-        messages,
         includeThinking,
-        prompt,
         chatId,
-        skipUserMessage = false,
     } = await req
         .json();
-
-    // // append the prompt to messages array
-    // messages.push({ role: "user", content: prompt });
 
     if (!chatId) {
         return new Response("Chat ID is required", { status: 400 });
@@ -28,50 +31,139 @@ export async function POST(req: Request) {
 
     const supabase = createClient();
 
-    // Build messages array - filter out unnecessary fields and append current prompt if not skipping
-    let allMessages = messages && messages.length > 0
-        ? messages.map((msg: any) => ({ role: msg.role, content: msg.content }))
-        : [];
+    const supabaseAuth = await supabase.auth.getUser();
 
-    // If not skipping user message, append the current prompt to messages for AI context
-    if (!skipUserMessage) {
-        allMessages.push({ role: "user", content: prompt });
-    } else if (allMessages.length === 0) {
-        // For initial prompt that's already in DB, still need to include it for AI
-        allMessages.push({ role: "user", content: prompt });
+    if (!supabaseAuth.data.user) {
+        return new Response("Unauthorized", { status: 401 });
     }
 
-    // Only insert user message to DB if not skipping (i.e., not from initial prompt)
-    if (!skipUserMessage) {
-        try {
-            const { data: userData, error } = await supabase.auth.getUser();
+    const userId = supabaseAuth.data.user.id;
 
-            if (error || !userData.user) {
-                return new Response("Unauthorized", { status: 401 });
+    if (!userId) {
+        return new Response("Unauthorized", { status: 401 });
+    }
+
+    // get all the messages for the chat from the database
+    const { data: messages, error } = await supabase.from("messages")
+        .select("role, content, msg_media")
+        .eq("chat_id", chatId)
+        .order("created_at", { ascending: true });
+
+    if (error) {
+        console.error("Error fetching messages:", error);
+        return new Response("Error fetching messages", { status: 500 });
+    }
+
+    const chatMediaBucket = supabase.storage.from("chat-media");
+
+    // Build messages array with proper MessageType structure and file content
+    let allMessages: ModelMessage[] = [];
+
+    if (messages && messages.length > 0) {
+        for (const msg of messages) {
+            // Determine the role type
+            const role = msg.role as "user" | "assistant" | "system" | "tool";
+
+            // Start with text content (ModelMessage allows string or parts array)
+            let messageContent: MessageContentPart;
+
+            // If message has files, then we need to build parts array
+            if (msg.msg_media && msg.msg_media.length > 0) {
+                const textContent = {
+                    type: "text" as const,
+                    text: msg.content,
+                };
+
+                // now the files part
+                let content: Array<TextPart | ImagePart | FilePart> = [];
+
+                for (const mediaPath of msg.msg_media) {
+                    // remove the chat-media part fromt eh path
+                    const requiredMediaPath = mediaPath.replace(
+                        "chat-media/",
+                        "",
+                    );
+
+                    const { data: fileDownloadData, error: downloadError } =
+                        await chatMediaBucket.download(
+                            requiredMediaPath,
+                        );
+
+                    if (downloadError || !fileDownloadData) {
+                        console.error("Error downloading the file");
+                        throw downloadError; // skip this file
+                    }
+
+                    const arrayBuffer = await fileDownloadData.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    const base64String = Buffer.from(uint8Array).toString(
+                        "base64",
+                    );
+
+                    const ext = mediaPath.split(".").pop()?.toLowerCase();
+                    let mediaType;
+
+                    if (
+                        ["jpg", "jpeg", "png", "gif", "webp"].includes(
+                            ext,
+                        )
+                    ) {
+                        mediaType = `image/${ext === "jpg" ? "jpeg" : ext}`;
+                    } else if (ext === "pdf") {
+                        mediaType = "application/pdf";
+                    } else if (ext === "txt") {
+                        mediaType = "text/plain";
+                    } else if (ext === "md") {
+                        mediaType = "text/markdown";
+                    } else if (ext === "mp4") {
+                        mediaType = "video/mp4";
+                    } else if (ext === "mp3") {
+                        mediaType = "audio/mpeg";
+                    }
+
+                    const isImage = mediaType?.startsWith("image/");
+
+                    // Determine if it's an image or generic file based on extension
+                    if (isImage) {
+                        // It's an image
+                        content.push({
+                            type: "image",
+                            image: base64String,
+                        } as ImagePart);
+                    } else {
+                        // It's a generic file
+                        content.push({
+                            type: "file",
+                            data: base64String,
+                            mediaType: mediaType!,
+                        });
+                    }
+                }
+
+                // Combine text content and parts
+                messageContent = [textContent, ...content];
+            } else {
+                messageContent = msg.content;
             }
 
-            const { data: msgData, error: msgError } = await supabase.rpc(
-                "add_message",
-                {
-                    p_chat_id: chatId,
-                    p_sender_id: userData.user.id,
-                    p_sender_role: "user",
-                    p_content: prompt,
-                    p_model_name: null,
-                },
-            );
+            // Create message with proper MessageType structure
+            const baseMessage: any = {
+                role: msg.role,
+                content: messageContent,
+            };
 
-            if (msgError) {
-                console.error("Error inserting message:", msgError);
-                return new Response("Failed to insert message", {
-                    status: 500,
-                });
-            }
-        } catch (error) {
-            console.error("Supabase auth error:", error);
-            return new Response("Unauthorized", { status: 401 });
+            // Push to allMessages array
+            allMessages.push(baseMessage);
         }
     }
+
+    // for (const message of allMessages) {
+    //     console.log(message.role);
+    //     console.dir(message.content, { depth: null });
+    // }
+
+    // DO NOT EDIT THIS PART BELOW - IT IS COMMENTED OUT FOR TESTING PURPOSES ONLY
+    // Build messages array - filter out unnecessary fields and append current prompt if not skipping
 
     try {
         // Use default model
@@ -83,7 +175,7 @@ export async function POST(req: Request) {
             google: {
                 thinkingConfig: {
                     includeThoughts: includeThinking,
-                    thinkingBudget: 16284,
+                    thinkingBudget: 8192,
                 },
             } satisfies GoogleGenerativeAIProviderOptions,
         };
@@ -91,7 +183,7 @@ export async function POST(req: Request) {
         // Generate the AI response as a stream
         const result = streamText({
             model: selectedModel,
-            system: "You are a helpful assistant but you are not allowed to use the word 'Computer' in your responses.",
+            system: "You are a helpful assistant.",
             messages: allMessages,
             providerOptions,
             onChunk: ({ chunk }) => {
@@ -100,7 +192,10 @@ export async function POST(req: Request) {
                 }
             },
             onError: (err) => {
-                console.error("Error during text streaming:", err);
+                console.dir(err, { depth: null });
+                if (TypeValidationError.isInstance(err)) {
+                    console.log("There has to be a type validation error:");
+                }
                 throw err;
             },
         });
@@ -114,7 +209,7 @@ export async function POST(req: Request) {
                 // Helper function to save partial response
                 const savePartialResponse = async () => {
                     if (fullText.length > 0 || fullReasoning.length > 0) {
-                        const content = isGoogleModel 
+                        const content = isGoogleModel
                             ? `<reasoning-start>\n${fullReasoning}\n<reasoning-end>\n\n<text-start>\n${fullText}\n<text-end>`
                             : `<text-start>\n${fullText}\n<text-end>`;
                         try {
@@ -127,7 +222,10 @@ export async function POST(req: Request) {
                                 p_model_name: "gemini-2.5-pro",
                             });
                         } catch (err) {
-                            console.error("Error saving AI message to database:", err);
+                            console.error(
+                                "Error saving AI message to database:",
+                                err,
+                            );
                         }
                     }
                 };
@@ -135,7 +233,7 @@ export async function POST(req: Request) {
                 try {
                     for await (const chunk of result.fullStream) {
                         if (isClosed) break;
-                        
+
                         switch (chunk.type) {
                             case "text-start":
                                 controller.enqueue(
@@ -156,7 +254,9 @@ export async function POST(req: Request) {
                                 // Only include reasoning for Google models
                                 if (isGoogleModel) {
                                     controller.enqueue(
-                                        new TextEncoder().encode("<reasoning-start>"),
+                                        new TextEncoder().encode(
+                                            "<reasoning-start>",
+                                        ),
                                     );
                                 }
                                 break;
@@ -164,7 +264,9 @@ export async function POST(req: Request) {
                                 // Only include reasoning for Google models
                                 if (isGoogleModel) {
                                     controller.enqueue(
-                                        new TextEncoder().encode("<reasoning-end>"),
+                                        new TextEncoder().encode(
+                                            "<reasoning-end>",
+                                        ),
                                     );
                                 }
                                 break;
@@ -194,7 +296,7 @@ export async function POST(req: Request) {
             cancel() {
                 // This is called when the client aborts the request
                 // console.log("Stream cancelled by client");
-            }
+            },
         });
 
         return new Response(responseStream, {
@@ -206,4 +308,6 @@ export async function POST(req: Request) {
         console.error("Error in chat route:", err);
         return new Response("Internal Server Error", { status: 500 });
     }
+
+    // return new Response("API is under maintenance", { status: 200 });
 }

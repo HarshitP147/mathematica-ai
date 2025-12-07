@@ -65,7 +65,7 @@ export default function ChatBody() {
 
     }, [slug]);
 
-    async function streamResponse(prompt: string, includeThinking: boolean, chatId: string, skipUserMessage: boolean = false) {
+    async function streamResponse(includeThinking: boolean, chatId: string) {
         setStreamingContent(""); // Clear previous streaming content
         setIsWaitingForResponse(true); // Show loading state until first chunk arrives
 
@@ -81,11 +81,9 @@ export default function ChatBody() {
                 },
                 signal,
                 body: JSON.stringify({
-                    prompt: prompt,
                     includeThinking: includeThinking,
                     chatId: chatId,
-                    messages: msgList,
-                    skipUserMessage: skipUserMessage
+                    selectedModel: "gemini-2.5-pro",
                 })
             });
 
@@ -111,6 +109,7 @@ export default function ChatBody() {
                     if (done) break;
                     if (value) {
                         const chunk = decoder.decode(value, { stream: true });
+                        console.log(chunk)
                         setStreamingContent(prev => prev + chunk);
                         if (!hasReceivedChunk) {
                             hasReceivedChunk = true;
@@ -176,18 +175,15 @@ export default function ChatBody() {
             router.replace(`/chat/${slug}`, { scroll: false });
 
             // Send the initial prompt (skipUserMessage = true since it's already in DB)
-            // streamResponse('', includeThinking, slug as string, "gemini-2.5-pro", true);
+            streamResponse(includeThinking, slug as string);
         }
     }, [searchParams, slug, router]);
 
     async function handleSubmit(prevState: any, formData: FormData) {
-        const prompt = formData.get("prompt") as string;
         const includeThinking = formData.get("includeThinking") === "true";
         const chatId = formData.get("chatId") as string;
 
         try {
-            // Set loading state immediately for instant feedback
-            setIsWaitingForResponse(true);
 
             // Store message with media to database
             const { status } = await addMessageWithMediaAction(formData);
@@ -210,7 +206,19 @@ export default function ChatBody() {
             // Trigger a soft refresh to keep server components in sync
             router.refresh();
 
-            setIsWaitingForResponse(false);
+            // Start streaming the AI response
+            setIsWaitingForResponse(true);
+            try {
+
+                await streamResponse(includeThinking, chatId);
+            }
+            catch (error) {
+                console.error("Error streaming response:", error);
+            }
+
+            setTimeout(() => {
+                setIsWaitingForResponse(false);
+            }, 5000)
 
             // After successful storage, you can re-enable streaming if desired
             // await streamResponse(prompt, includeThinking, chatId, true);

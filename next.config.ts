@@ -4,9 +4,27 @@ const nextConfig: NextConfig = {
   /* config options here */
   images: {
     remotePatterns: [
-      new URL("https://ekatktsqctrcchuevokn.supabase.co/**"),
-      new URL("http://127.0.0.1:54321/**"),
-      new URL("https://lh3.googleusercontent.com/**"),
+      {
+        protocol: "https",
+        hostname: "ekatktsqctrcchuevokn.supabase.co",
+        pathname: "/storage/v1/object/**",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "54321",
+        pathname: "/storage/v1/object/**",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
     ],
   },
   experimental: {
