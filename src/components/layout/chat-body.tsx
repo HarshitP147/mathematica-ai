@@ -109,7 +109,6 @@ export default function ChatBody() {
                     if (done) break;
                     if (value) {
                         const chunk = decoder.decode(value, { stream: true });
-                        console.log(chunk)
                         setStreamingContent(prev => prev + chunk);
                         if (!hasReceivedChunk) {
                             hasReceivedChunk = true;
@@ -174,8 +173,12 @@ export default function ChatBody() {
             // Remove the query parameter from URL
             router.replace(`/chat/${slug}`, { scroll: false });
 
-            // Send the initial prompt (skipUserMessage = true since it's already in DB)
-            streamResponse(includeThinking, slug as string);
+            // check if this is a new chat
+            const isNewChat = searchParams.get('newChat') === 'true';
+            if (isNewChat) {
+                streamResponse(includeThinking, slug as string);
+            }
+            return; // Don't stream response for new chat creation
         }
     }, [searchParams, slug, router]);
 

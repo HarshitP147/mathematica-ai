@@ -86,6 +86,6 @@ export async function createNewChatAction(state: any, formData: FormData) {
     revalidatePath("/chat");
 
     redirect(
-        `/chat/${chatId}?includeThinking=${includeThinking ? "true" : "false"}`,
+        `/chat/${chatId}?includeThinking=${includeThinking ? "true" : "false"}&newChat=true`,
     );
 }

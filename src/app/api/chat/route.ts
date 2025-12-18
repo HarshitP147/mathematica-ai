@@ -10,7 +10,7 @@ import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { createClient } from "@/util/supabase/server";
 import { redirect } from "next/navigation";
 
-import { gemini25Pro } from "@/lib/ai-sdk";
+import { gemini25Flash, gemini25Pro } from "@/lib/ai-sdk";
 
 export async function GET() {
     return redirect("/");
@@ -167,7 +167,7 @@ export async function POST(req: Request) {
 
     try {
         // Use default model
-        const selectedModel = gemini25Pro;
+        const selectedModel = gemini25Flash;
         const isGoogleModel = true;
 
         // Configure provider options for Google models
@@ -213,19 +213,27 @@ export async function POST(req: Request) {
                             ? `<reasoning-start>\n${fullReasoning}\n<reasoning-end>\n\n<text-start>\n${fullText}\n<text-end>`
                             : `<text-start>\n${fullText}\n<text-end>`;
                         try {
-                            const supabase = createClient();
-                            await supabase.rpc("add_message", {
+                            const { data, error } = await supabase.rpc("add_message", {
                                 p_chat_id: chatId,
                                 p_sender_id: null,
                                 p_sender_role: "assistant",
                                 p_content: content,
-                                p_model_name: "gemini-2.5-pro",
+                                p_model_name: "gemini-2.5-flash",
+                                p_msg_media: null,
                             });
+                            
+                            if (error) {
+                                console.error("RPC Error:", error);
+                                throw error;
+                            }
+                            
+                            console.log("AI message saved successfully:", data);
                         } catch (err) {
                             console.error(
                                 "Error saving AI message to database:",
                                 err,
                             );
+                            throw err; // Re-throw to see the actual error
                         }
                     }
                 };

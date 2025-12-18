@@ -146,6 +146,8 @@ Required for local development:
 - Refresh from database after streaming completes
 - Handle temporary UI updates during loading states
 
+- PS: Do not ever edit the migration files directly once created. Always create new migration files for schema changes.
+
 ## Debugging Tips
 - Check Supabase Studio at http://localhost:54323 for database state
 - Monitor streaming chunks in browser console
